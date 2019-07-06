@@ -1,0 +1,11 @@
+[package]
+name = "simplex"
+version = "0.1.0"
+authors = ["Nestor Demeure <nestor@nestor-HP-ProBook-650-G1>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+priority-queue = "0.6.0"
+ordered-float = "1.0.2"
