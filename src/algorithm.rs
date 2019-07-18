@@ -1,50 +1,85 @@
-use crate::point::{Coordinates, Point};
-use crate::simplex::Simplex;
-use crate::queue::*;
-
+use crate::point::*;
+use crate::simplex::*;
+use crate::function::*;
+use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
-use std::cmp::{min, max};
-
-//-----------------------------------------------------------------------------
-// ALGORITHM
 
 /// takes a fucntion to maximise, an array of input intervals and a number of iterations
 pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
-                        input_interval: &[(f64, f64)],
-                        nb_iter: usize,
-                        exploration_preference: f64)
-                        -> f64
+                        input_interval: Vec<(f64, f64)>,
+                        nb_iter: usize)
+                        -> (f64, Coordinates)
 {
-   let initial_simplex = Simplex::from_hypercube(input_interval, f);
+   // builds initial conditions
+   let f = TargetFunction::new(f, input_interval);
+   let initial_simplex = Simplex::initial_simplex(&f);
+   let mut best_point = initial_simplex.corners
+                                       .iter()
+                                       .max_by_key(|c| OrderedFloat(c.value))
+                                       .expect("You need at least one dimension!")
+                                       .clone();
+   let mut iter = initial_simplex.corners.len();
+   // used to compute the difference
+   let exploration_preference = 0.005;
+   let mut best_value = best_point.value;
    let mut worst_value = initial_simplex.corners
                                         .iter()
                                         .map(|c| OrderedFloat(c.value))
                                         .min()
-                                        .expect("You need at least one dimenssion");
-   let mut best_value = initial_simplex.corners
-                                       .iter()
-                                       .map(|c| OrderedFloat(c.value))
-                                       .max()
-                                       .expect("You need at least one dimenssion");
-   let nb_consumed_iter = initial_simplex.corners.len();
+                                        .map(|v| *v)
+                                        .expect("You need at least one dimension!");
 
-   let mut queue = Queue::new(exploration_preference);
-   queue.push(initial_simplex, *best_value - *worst_value);
+   // initialize priority queue
+   let mut queue: PriorityQueue<Simplex, OrderedFloat<f64>> = PriorityQueue::new();
+   queue.push(initial_simplex, OrderedFloat(0.)); // no value computed for the initial simplex as it is alone anyway
 
-   for iter in nb_consumed_iter..=nb_iter
+   while (iter <= nb_iter) && !queue.is_empty()
    {
-      let simplex = queue.pop();
+      // gets an up to date point
+      let (mut simplex, mut _evaluation) = queue.pop().expect("The queue cannot be empty!");
+      let mut evaluation = simplex.evaluate(best_value - worst_value, exploration_preference);
+      while evaluation != *_evaluation
+      {
+         queue.push(simplex, OrderedFloat(evaluation));
+         let (simplex2, _evaluation2) = queue.pop().expect("The queue cannot be empty!");
+         simplex = simplex2;
+         _evaluation = _evaluation2;
+         evaluation = simplex.evaluate(best_value - worst_value, exploration_preference);
+      }
+
+      // evaluate the center of the simplex
       let coordinates = simplex.center.clone();
-
-      let value = f(&coordinates);
-      best_value = max(best_value, OrderedFloat(value));
-      worst_value = min(worst_value, OrderedFloat(value));
-      let difference = *best_value - *worst_value;
-      println!("iter:{} best_value:{} current_value:{}", iter, best_value, value);
-
+      let value = f.evaluate(&coordinates);
       let new_point = Point { coordinates, value };
-      simplex.split(&new_point).into_iter().for_each(|s| queue.push(s, difference))
+
+      // splits the simplex aroud its center and push the subsimplex into the queue
+      simplex.split(&new_point)
+             .into_iter()
+             .map(|s| (OrderedFloat(s.evaluate(best_value - worst_value, exploration_preference)), s))
+             .for_each(|(e, s)| {
+                queue.push(s, e);
+             });
+
+      // updates the best value so far
+      //println!("iter:{} best_value_so_far:{} current_value:{}", iter, best_point.value, new_point.value);
+      if value > best_point.value
+      {
+         best_point = new_point;
+         let c = f.to_hypercube(best_point.coordinates.clone());
+         println!("iter:{} best_value_so_far:{} in [{}, {}]", iter, best_point.value, c[0], c[1]);
+      }
+
+      if value > best_value
+      {
+         best_value = value;
+      }
+      if value < worst_value
+      {
+         worst_value = value;
+      }
+
+      iter += 1;
    }
 
-   *best_value
+   (best_point.value, f.to_hypercube(best_point.coordinates))
 }

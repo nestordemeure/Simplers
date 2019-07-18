@@ -1,8 +1,6 @@
 use crate::point::*;
+use crate::function::*;
 use std::hash::{Hash, Hasher};
-
-//-----------------------------------------------------------------------------
-// SIMPLEX
 
 /// represents a simplex
 pub struct Simplex
@@ -18,35 +16,27 @@ impl Simplex
    fn new(corners: Vec<Point>, ratio: f64) -> Simplex
    {
       let center = Point::average_coordinate(&corners);
-      //println!("center: x{} y{}", center[0], center[1]);
       Simplex { corners, center, ratio }
    }
 
-   /// takes an hypercube and produces a simplex that contains the given hypercube
-   /// NOTE: the ratio is set to 1. and the difference to 0.
-   /// WARNING: this will create coordinates that are out of the given hypercube
-   pub fn from_hypercube(hypercube: &[(f64, f64)], f: fn(&Coordinates) -> f64) -> Simplex
+   /// builds the initial unit simplex with one point per dimension plus an origin
+   pub fn initial_simplex(f: &TargetFunction) -> Simplex
    {
-      // builds all the corners of the simplex
-      let min_coordinates: Vec<f64> = hypercube.iter().map(|(inf, _sup)| *inf).collect();
-      let mut corners = vec![];
-      for i in 0..hypercube.len()
-      {
-         let mut coordinates = min_coordinates.clone();
-         let (inf_i, sup_i) = hypercube[i];
-         coordinates[i] = sup_i + (sup_i - inf_i);
+      // builds one corner per dimension
+      let min_coordinates = vec![0.; f.dimension]; // vector of zero
+      let mut corners: Vec<Point> = (0..f.dimension).map(|i| {
+                                                       let mut coordinates = min_coordinates.clone();
+                                                       coordinates[i] = 1.;
+                                                       let value = f.evaluate(&coordinates);
+                                                       Point { coordinates, value }
+                                                    })
+                                                    .collect();
 
-         let value = f(&coordinates);
+      // adds the corner corresponding to the origin
+      let min_corner = Point { value: f.evaluate(&min_coordinates), coordinates: min_coordinates };
+      corners.push(min_corner);
 
-         let corner = Point { coordinates, value };
-         corners.push(corner);
-      }
-
-      // adds the corner that corresponds to the min coordinates
-      let value_at_min = f(&min_coordinates);
-      let corner_min = Point { coordinates: min_coordinates, value: value_at_min };
-      corners.push(corner_min);
-
+      // assemble the simplex
       Simplex::new(corners, 1.)
    }
 
@@ -62,48 +52,61 @@ impl Simplex
       let total_distance: f64 = distances.iter().sum();
       for i in 0..self.corners.len()
       {
-         // builds the corners of the new simplex
-         let mut corners = self.corners.clone();
-         corners[i] = new_point.clone();
+         // we refuse simplex reduced to a point
+         if distances[i] > 1e-15
+         {
+            // builds the corners of the new simplex
+            let mut corners = self.corners.clone();
+            corners[i] = new_point.clone();
 
-         // computes the ratio of the child
-         // which is the ratio of its father multiplied by the fraction of its father occupied by the child
-         let ratio = self.ratio * (distances[i] / total_distance);
+            // computes the ratio of the child
+            // which is the ratio of its father multiplied by the fraction of its father occupied by the child
+            let ratio = self.ratio * (distances[i] / total_distance);
 
-         let simplex = Simplex::new(corners, ratio);
-         result.push(simplex);
+            let simplex = Simplex::new(corners, ratio);
+            result.push(simplex);
+         }
       }
       result
    }
 
    /// returns a score for a simplex
-   pub fn evaluate(&self, exploration_preference: f64, difference: f64) -> f64
+   pub fn evaluate(&self, difference: f64, exploration_preference: f64) -> f64
    {
-      // computes the value interpolated from the corners
-      let mut total_inverse_distance = 0.;
-      let interpolated_value = self.corners
-                                   .iter()
-                                   .map(|c| {
-                                      let d = 1. / Point::distance(&c.coordinates, &self.center);
-                                      total_inverse_distance += d;
-                                      c.value * d
-                                   })
-                                   .sum::<f64>()
-                               / total_inverse_distance;
+      // computes the distance from the center to each corner
+      let inverse_distances: Vec<f64> =
+         self.corners.iter().map(|c| 1. / Point::distance(&c.coordinates, &self.center)).collect();
+      let total_inverse_distance: f64 = inverse_distances.iter().sum();
+
+      // computes the value of the center, interpolated from the corners
+      let interpolated_value =
+         self.corners.iter().zip(inverse_distances.iter()).map(|(c, d)| c.value * d).sum::<f64>()
+         / total_inverse_distance;
 
       // computes the number of split needed to reach the given ratio if we start from a regular simplex
       let dim = self.center.len() as f64;
       let split_number = self.ratio.log(dim + 1.).abs();
 
-      if difference == 0.
-      {
-         -split_number
-      }
-      else
-      {
-         //println!("{} - {} * {} * {}", interpolated_value, exploration_preference, difference, split_number);
-         interpolated_value - exploration_preference * difference * split_number
-      }
+      // computes the variance of the values of the corners, ponderated by the inverse of their distance to the targer
+      // for the formula, see: https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
+      // or: http://re-design.dimiter.eu/?p=290
+      let total_inverse_distance_squared: f64 = inverse_distances.iter().map(|d| d * d).sum();
+      let mean_value = self.corners.iter().map(|c| c.value).sum::<f64>() / (self.center.len() as f64);
+      let bias_correction = total_inverse_distance
+                            / (total_inverse_distance * total_inverse_distance
+                               - total_inverse_distance_squared);
+      let variance = self.corners
+                         .iter()
+                         .map(|c| c.value)
+                         .zip(inverse_distances.iter())
+                         .map(|(v, d)| d * (v - mean_value).powf(2.))
+                         .sum::<f64>()
+                     * bias_correction;
+
+      // TODO here use proper formula
+      // ucbtuned or expected improvement
+      //println!("interpolated={}, variance={}, splits={}, dist={}, diff={}", interpolated_value, variance, split_number, total_inverse_distance, difference);
+      interpolated_value + exploration_preference * difference * split_number
    }
 }
 
