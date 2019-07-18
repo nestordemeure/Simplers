@@ -8,6 +8,8 @@ Our goal is to deal with edge cases and provide a nicer interface on top of the 
 
 ## TODO
 
+### Various
+
 Let the user sugest some points to speed-up the search (will require the ability to check wether a point is in a simplex or a triangularisation algorithm).
 
 Let the user save and load the search (?).
