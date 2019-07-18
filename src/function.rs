@@ -18,7 +18,7 @@ impl Function
 
    /// converts coordinates from the hypercube to the unit simplex
    /// for the formula used, see: https://math.stackexchange.com/a/385071/495073
-   fn to_simplex(&self, c: Coordinates) -> Coordinates
+   pub fn to_simplex(&self, c: Coordinates) -> Coordinates
    {
       // goes to the unit hypercube
       let c: Coordinates =
@@ -33,7 +33,7 @@ impl Function
 
    /// converts coordinates from the unit simplex to the hypercube
    /// formula deduced from: https://math.stackexchange.com/a/385071/495073
-   fn to_hypercube(&self, c: Coordinates) -> Coordinates
+   pub fn to_hypercube(&self, c: Coordinates) -> Coordinates
    {
       // gets the ratio to go from the unit hypercube to the unit simplex
       let sum: f64 = c.iter().sum();
@@ -43,8 +43,9 @@ impl Function
       // goes from the simplex to the target hypercube
       c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| inf + x * ratio * (sup - inf)).collect()
    }
+
    /// takes coordinates in the unit simplex and evaluate them
-   fn evaluate(&self, c: Coordinates) -> f64
+   pub fn evaluate(&self, c: Coordinates) -> f64
    {
       let c_hypercube = self.to_hypercube(c);
       (self.f)(&c_hypercube)

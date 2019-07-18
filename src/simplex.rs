@@ -1,4 +1,5 @@
 use crate::point::*;
+use std::hash::{Hash, Hasher};
 
 //-----------------------------------------------------------------------------
 // SIMPLEX
@@ -105,3 +106,27 @@ impl Simplex
       }
    }
 }
+
+//-----------------------------------------------------------------------------
+// TRAITS
+
+/// workaround since floats cannot be hashed
+impl Hash for Simplex
+{
+   /// relies on a hash of the bit representation of the coordinates of the center of the simplex
+   fn hash<H: Hasher>(&self, state: &mut H)
+   {
+      self.center.iter().map(|x| x.to_bits()).collect::<Vec<u64>>().hash(state);
+   }
+}
+
+impl PartialEq for Simplex
+{
+   /// two Simplex are equal if they have the exact same center
+   fn eq(&self, other: &Self) -> bool
+   {
+      self.center == other.center
+   }
+}
+
+impl Eq for Simplex {}
