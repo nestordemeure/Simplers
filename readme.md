@@ -1,22 +1,32 @@
 # Simple(x) Global Optimization
 
-A rust port of the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization librarie.
+Experimentations with the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization algorithm.
 
-*This port is still a work in progress*, the current version is roughly on par with the original but lets you define your hyperparameter as an hypercube instead of a simplex.
+Our goal is to implement the main algorithm in Rust and improve it if possible.
 
-Our goal is to deal with edge cases and provide a nicer interface on top of the algorithm.
+**This is a work in progress.**
+
+## Implemented Improvements
+
+- The user can define the search space as an hypercube
+
+## Potential improvement
+
+Do not hesitate to ask for improvements if needed.
+
+- Let the user sugest some points to speed-up the search (will require the ability to check wether a point is in a simplex or a triangularisation algorithm).
+
+- Let the user request several points to explore in parallel.
 
 ## TODO
 
-Let the user sugest some points to speed-up the search (will require the ability to check wether a point is in a simplex or a triangularisation algorithm).
+Add tags to the github page.
 
-Let the user save and load the search (?).
+Experiment with the main exploration/exploitation algorithm.
 
-Use the builder patter to make it easier to define a problem:
+## Project submission
 
-## Useful references
-
-The interface of the python [BayesianOptimization](https://github.com/fmfn/BayesianOptimization) package would be a good inspiration.
+Submit project to [crates.io](https://crates.io/).
 
 Once properly usable, the project could be submited to [www.arewelearningyet.com/metaheuristics](http://www.arewelearningyet.com/metaheuristics/).
 

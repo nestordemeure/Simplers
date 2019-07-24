@@ -2,14 +2,6 @@
 
 ## Initialization
 
-The easiest way to initialize the algorithm is to take a simplex of d+1 points as parameters.
-
-One could also take a minimum of d+1 points and triangulize them in order to build the original simplex.
-
-Finally, one could take intervals (open or closed) and build one or more simplex to contain them (if all intervals are open on at least one side, then you can just build a simplex containing the hypercube).
-
-### Mapping
-
 If we have a mapping from the unit simplex to the unit hypercube and from the unit hypercube to the target hypercube, we can take an hypercube as parameters while doing the search in the simplex space.
 
 This would be the easiest way to deal with an input hypercube without putting additional stress on the user.
@@ -32,8 +24,10 @@ hi = si * (sum_s / max_s)
 
 ## Exploration-exploitation
 
-The current formula is ad-hoc but we have access to the number of visit to a node (approximated with a logarithm of its fraction of the total volume) and its approximated value.
-If we add a variance, we can then use UCB, expected improvement and UCB-tuned in order to do our search (the last two having the advantages of not relying on a parameter).
+I am unhappy with the current formula for two reasons :
+
+- it is very sensible to its parameter
+- it uses the difference between the best and worst points so far which implies that we need to update our scores
 
 ## Tree structure
 
