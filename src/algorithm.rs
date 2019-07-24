@@ -5,11 +5,19 @@ use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 
 /// takes a fucntion to maximise, an array of input intervals and a number of iterations
+///
+/// exploration_depth represents the number of splits we can exploit before requiring higher-level exploration
+/// 0 represents full exploration (as sort of grid search) while high numbers focus on exploitation (no need to go very high)
+/// 5 appears to be a good default value
+/// as long as one stays in a reasonable range (5-10), the algorithm appears to not be very sensible to the parameter
 pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
                         input_interval: Vec<(f64, f64)>,
+                        exploration_depth: usize,
                         nb_iter: usize)
                         -> (f64, Coordinates)
 {
+   let exploration_depth = 1. + (exploration_depth as f64);
+
    // builds initial conditions
    let f = TargetFunction::new(f, input_interval);
    let initial_simplex = Simplex::initial_simplex(&f);
@@ -19,8 +27,8 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
                                        .expect("You need at least one dimension!")
                                        .clone();
    let mut iter = initial_simplex.corners.len();
+
    // used to compute the difference
-   let exploration_preference = 0.15;
    let mut best_value = best_point.value;
    let mut worst_value = initial_simplex.corners
                                         .iter()
@@ -36,8 +44,8 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
    while (iter <= nb_iter) && !queue.is_empty()
    {
       // gets an up to date point
-      let (mut simplex, mut _evaluation) = queue.pop().expect("The queue cannot be empty!");
-      let mut evaluation = simplex.evaluate(best_value - worst_value, exploration_preference);
+      let (mut simplex, mut evaluation) = queue.pop().expect("The queue cannot be empty!");
+      /*let mut evaluation = simplex.evaluate(best_value - worst_value, exploration_preference);
       while evaluation != *_evaluation
       {
          queue.push(simplex, OrderedFloat(evaluation));
@@ -45,7 +53,7 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
          simplex = simplex2;
          _evaluation = _evaluation2;
          evaluation = simplex.evaluate(best_value - worst_value, exploration_preference);
-      }
+      }*/
 
       // evaluate the center of the simplex
       let coordinates = simplex.center.clone();
@@ -55,9 +63,7 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
       // splits the simplex aroud its center and push the subsimplex into the queue
       simplex.split(&new_point)
              .into_iter()
-             .map(|s| {
-                (OrderedFloat(s.evaluate(best_value - worst_value, exploration_preference)), s)
-             })
+             .map(|s| (OrderedFloat(s.evaluate(best_value - worst_value, exploration_depth)), s))
              .for_each(|(e, s)| {
                 queue.push(s, e);
              });

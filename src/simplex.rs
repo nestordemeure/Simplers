@@ -1,7 +1,7 @@
 use crate::point::*;
 use crate::function::*;
 use std::hash::{Hash, Hasher};
-use statrs::distribution::{Normal, Continuous, Univariate};
+use ordered_float::OrderedFloat;
 
 /// represents a simplex
 pub struct Simplex
@@ -72,7 +72,7 @@ impl Simplex
    }
 
    /// returns a score for a simplex
-   pub fn evaluate(&self, difference: f64, exploration_preference: f64) -> f64
+   pub fn evaluate(&self, difference: f64, exploration_depth: f64) -> f64
    {
       // computes the distance from the center to each corner
       let inverse_distances: Vec<f64> =
@@ -88,7 +88,7 @@ impl Simplex
       let dim = self.center.len() as f64;
       let split_number = self.ratio.log(dim + 1.).abs();
 
-      interpolated_value - exploration_preference * difference * split_number
+      interpolated_value - difference * (split_number / exploration_depth)
    }
 }
 
