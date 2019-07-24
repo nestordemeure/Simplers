@@ -20,7 +20,7 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
                                        .clone();
    let mut iter = initial_simplex.corners.len();
    // used to compute the difference
-   let exploration_preference = 0.005;
+   let exploration_preference = 0.15;
    let mut best_value = best_point.value;
    let mut worst_value = initial_simplex.corners
                                         .iter()
@@ -55,18 +55,23 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
       // splits the simplex aroud its center and push the subsimplex into the queue
       simplex.split(&new_point)
              .into_iter()
-             .map(|s| (OrderedFloat(s.evaluate(best_value - worst_value, exploration_preference)), s))
+             .map(|s| {
+                (OrderedFloat(s.evaluate(best_value - worst_value, exploration_preference)), s)
+             })
              .for_each(|(e, s)| {
                 queue.push(s, e);
              });
 
       // updates the best value so far
       //println!("iter:{} best_value_so_far:{} current_value:{}", iter, best_point.value, new_point.value);
+      let c = f.to_hypercube(new_point.coordinates.clone());
+      println!("iter:{} value:{} in [{}, {}] <- [{}, {}]",
+               iter, new_point.value, c[0], c[1], new_point.coordinates[0], new_point.coordinates[1]);
       if value > best_point.value
       {
          best_point = new_point;
-         let c = f.to_hypercube(best_point.coordinates.clone());
-         println!("iter:{} best_value_so_far:{} in [{}, {}]", iter, best_point.value, c[0], c[1]);
+         //let c = f.to_hypercube(best_point.coordinates.clone());
+         //println!("iter:{} best_value_so_far:{} in [{}, {}]", iter, best_point.value, c[0], c[1]);
       }
 
       if value > best_value

@@ -1,6 +1,7 @@
 use crate::point::*;
 use crate::function::*;
 use std::hash::{Hash, Hasher};
+use statrs::distribution::{Normal, Continuous, Univariate};
 
 /// represents a simplex
 pub struct Simplex
@@ -87,26 +88,7 @@ impl Simplex
       let dim = self.center.len() as f64;
       let split_number = self.ratio.log(dim + 1.).abs();
 
-      // computes the variance of the values of the corners, ponderated by the inverse of their distance to the targer
-      // for the formula, see: https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Reliability_weights
-      // or: http://re-design.dimiter.eu/?p=290
-      let total_inverse_distance_squared: f64 = inverse_distances.iter().map(|d| d * d).sum();
-      let mean_value = self.corners.iter().map(|c| c.value).sum::<f64>() / (self.center.len() as f64);
-      let bias_correction = total_inverse_distance
-                            / (total_inverse_distance * total_inverse_distance
-                               - total_inverse_distance_squared);
-      let variance = self.corners
-                         .iter()
-                         .map(|c| c.value)
-                         .zip(inverse_distances.iter())
-                         .map(|(v, d)| d * (v - mean_value).powf(2.))
-                         .sum::<f64>()
-                     * bias_correction;
-
-      // TODO here use proper formula
-      // ucbtuned or expected improvement
-      //println!("interpolated={}, variance={}, splits={}, dist={}, diff={}", interpolated_value, variance, split_number, total_inverse_distance, difference);
-      interpolated_value + exploration_preference * difference * split_number
+      interpolated_value - exploration_preference * difference * split_number
    }
 }
 

@@ -28,6 +28,8 @@ max_h = sum_s = sum_i(si)
 max_s = max_h² / sum_h => sum_h / max_h = max_h / max_s = sum_s / max_s
 hi = si * (sum_s / max_s)
 
+(I have tested the other mapping from the link and it degraded results)
+
 ## Exploration-exploitation
 
 The current formula is ad-hoc but we have access to the number of visit to a node (approximated with a logarithm of its fraction of the total volume) and its approximated value.
