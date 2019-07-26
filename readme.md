@@ -1,6 +1,6 @@
 # Simple(x) Global Optimization
 
-Experimentations with the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization algorithm.
+A Rust implementation of the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization algorithm.
 
 The strengths of this algorithm compared to Gaussian optimization would be the ability to deal with a large number of sample and high dimension gracefully.
 
