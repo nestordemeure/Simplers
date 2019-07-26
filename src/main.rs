@@ -1,11 +1,12 @@
 mod point;
 mod simplex;
 mod algorithm;
-mod function;
+mod search_space;
 use point::Coordinates;
 use algorithm::simple_optimizer;
 
 /// test function
+#[allow(dead_code)]
 fn g(v: &Coordinates) -> f64
 {
    let x = v[0];
@@ -14,6 +15,7 @@ fn g(v: &Coordinates) -> f64
 }
 
 /// test function defined as a lambda
+#[allow(dead_code)]
 static F: fn(&Coordinates) -> f64 = |v| -((v[0] - 0.2).powf(2.) + (v[1] - 0.3).powf(2.)).sqrt();
 
 fn main()

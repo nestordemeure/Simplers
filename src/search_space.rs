@@ -2,24 +2,26 @@ use crate::point::*;
 use ordered_float::OrderedFloat;
 
 /// encapsulate a function and its domain of definition
-pub struct TargetFunction
+pub struct SearchSpace
 {
    f: fn(&Coordinates) -> f64,
    hypercube: Vec<(f64, f64)>,
    pub dimension: usize
 }
 
-impl TargetFunction
+impl SearchSpace
 {
-   /// builds a new function that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: fn(&Coordinates) -> f64, hypercube: Vec<(f64, f64)>) -> TargetFunction
+   /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
+   pub fn new(f: fn(&Coordinates) -> f64, hypercube: Vec<(f64, f64)>) -> SearchSpace
    {
       let dimension = hypercube.len();
-      TargetFunction { f, hypercube, dimension }
+      SearchSpace { f, hypercube, dimension }
    }
 
-   /// converts coordinates from the hypercube to the unit simplex
+   /// Converts coordinates from the hypercube to the unit simplex
+   /// This fucntion is useful when one wants to suggest a point to the algorithm
    /// for the formula used, see: https://math.stackexchange.com/a/385071/495073
+   #[allow(dead_code)]
    pub fn to_simplex(&self, c: Coordinates) -> Coordinates
    {
       // goes to the unit hypercube
@@ -52,12 +54,10 @@ impl TargetFunction
       c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| inf + x * ratio * (sup - inf)).collect()
    }
 
-   /// takes coordinates in the unit simplex and evaluate them
+   /// takes coordinates in the unit simplex and evaluate them with the function
    pub fn evaluate(&self, c: &Coordinates) -> f64
    {
       let c_hypercube = self.to_hypercube(c.clone());
-      let value = (self.f)(&c_hypercube);
-      //println!("value:{} in [{}, {}]", value, c_hypercube[0], c_hypercube[1]);
-      value
+      (self.f)(&c_hypercube)
    }
 }

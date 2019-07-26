@@ -1,6 +1,6 @@
 use crate::point::*;
 use crate::simplex::*;
-use crate::function::*;
+use crate::search_space::*;
 use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 
@@ -18,8 +18,8 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
 {
    // builds initial conditions
    let exploration_depth = 1. + (exploration_depth as f64);
-   let f = TargetFunction::new(f, input_interval);
-   let initial_simplex = Simplex::initial_simplex(&f);
+   let search_space = SearchSpace::new(f, input_interval);
+   let initial_simplex = Simplex::initial_simplex(&search_space);
 
    // various values track through the iterations
    let mut max_point = initial_simplex.corners
@@ -56,7 +56,7 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
 
       // evaluate the center of the simplex
       let coordinates = simplex.center.clone();
-      let value = f.evaluate(&coordinates);
+      let value = search_space.evaluate(&coordinates);
       let new_point = Point { coordinates, value };
 
       // splits the simplex around its center and push the subsimplex into the queue
@@ -81,5 +81,5 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
       iter += 1;
    }
 
-   (max_point.value, f.to_hypercube(max_point.coordinates))
+   (max_point.value, search_space.to_hypercube(max_point.coordinates))
 }

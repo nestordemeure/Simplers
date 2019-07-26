@@ -1,56 +1,67 @@
 use crate::point::*;
-use crate::function::*;
+use crate::search_space::*;
 use std::hash::{Hash, Hasher};
 
 /// represents a simplex
 pub struct Simplex
 {
+   /// the coordinate+evaluations of the corners of the simplex
    pub corners: Vec<Point>,
+   /// the coordinates of the center of the simplex (which is where it is evaluated)
    pub center: Coordinates,
+   /// what was the difference between the best value and the worst value when the simplex was last evaluated ?
    pub difference: f64,
+   /// which fraction of the original simplex does this simplex represents ?
    ratio: f64
 }
 
 impl Simplex
 {
    /// creates a new simplex
-   fn new(corners: Vec<Point>, ratio: f64, difference:f64) -> Simplex
+   fn new(corners: Vec<Point>, ratio: f64, difference: f64) -> Simplex
    {
       let center = Point::average_coordinate(&corners);
       Simplex { corners, center, ratio, difference }
    }
 
-   /// builds the initial unit simplex with one point per dimension plus an origin
-   pub fn initial_simplex(f: &TargetFunction) -> Simplex
+   /// builds the initial unit simplex with one point per axis plus an origin at zero
+   pub fn initial_simplex(search_space: &SearchSpace) -> Simplex
    {
+      // origin, a vector of zero
+      let origin = vec![0.; search_space.dimension].into_boxed_slice();
+
       // builds one corner per dimension
-      let min_coordinates = vec![0.; f.dimension]; // vector of zero
-      let mut corners: Vec<Point> = (0..f.dimension).map(|i| {
-                                                       let mut coordinates = min_coordinates.clone();
-                                                       coordinates[i] = 1.;
-                                                       let value = f.evaluate(&coordinates);
-                                                       Point { coordinates, value }
-                                                    })
-                                                    .collect();
+      let mut corners: Vec<Point> =
+         (0..search_space.dimension).map(|i| {
+                                       let mut coordinates = origin.clone();
+                                       coordinates[i] = 1.;
+                                       let value = search_space.evaluate(&coordinates);
+                                       Point { coordinates, value }
+                                    })
+                                    .collect();
 
       // adds the corner corresponding to the origin
-      let min_corner = Point { value: f.evaluate(&min_coordinates), coordinates: min_coordinates };
+      let min_corner = Point { value: search_space.evaluate(&origin), coordinates: origin };
       corners.push(min_corner);
 
       // assemble the simplex
       Simplex::new(corners, 1., 0.)
    }
 
-   /// takes a simplex and splits it
+   /// takes a simplex and splits it around a point
+   /// difference is the best value so far minus the worst value so far
    pub fn split(self, new_point: &Point, difference: f64) -> Vec<Simplex>
    {
-      let mut result = vec![];
+      // computes the distance between the new point and each corners of the simplex
       let distances: Box<[f64]> = self.corners
                                       .iter()
                                       .map(|c| &c.coordinates)
                                       .map(|c| Point::distance(c, &new_point.coordinates))
                                       .collect();
       let total_distance: f64 = distances.iter().sum();
+
+      // computes each sub simplex
+      let mut result = vec![];
       for i in 0..self.corners.len()
       {
          // we refuse simplex reduced to a point
@@ -64,6 +75,7 @@ impl Simplex
             // which is the ratio of its father multiplied by the fraction of its father occupied by the child
             let ratio = self.ratio * (distances[i] / total_distance);
 
+            // builds the new simplex and adds it to the list
             let simplex = Simplex::new(corners, ratio, difference);
             result.push(simplex);
          }
@@ -74,7 +86,7 @@ impl Simplex
    /// returns a score for a simplex
    pub fn evaluate(&self, exploration_depth: f64) -> f64
    {
-      // computes the distance from the center to each corner
+      // computes the inverse of the distance from the center to each corner
       let inverse_distances: Vec<f64> =
          self.corners.iter().map(|c| 1. / Point::distance(&c.coordinates, &self.center)).collect();
       let total_inverse_distance: f64 = inverse_distances.iter().sum();
@@ -88,7 +100,7 @@ impl Simplex
       let dim = self.center.len() as f64;
       let split_number = self.ratio.log(dim + 1.).abs();
 
-      // insures that the difference is non zero
+      // insures that the difference (which is positiv by construction) is non zero
       let difference = self.difference + std::f64::EPSILON;
 
       interpolated_value - difference * (split_number / exploration_depth)
@@ -96,7 +108,7 @@ impl Simplex
 }
 
 //-----------------------------------------------------------------------------
-// TRAITS
+// TRAITS FOR PRIORITY QUEUE
 
 /// workaround since floats cannot be hashed
 impl Hash for Simplex
@@ -104,7 +116,7 @@ impl Hash for Simplex
    /// relies on a hash of the bit representation of the coordinates of the center of the simplex
    fn hash<H: Hasher>(&self, state: &mut H)
    {
-      self.center.iter().map(|x| x.to_bits()).collect::<Vec<u64>>().hash(state);
+      self.center.iter().map(|x| x.to_bits()).collect::<Box<[u64]>>().hash(state);
    }
 }
 

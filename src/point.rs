@@ -1,7 +1,7 @@
 /// represents coordinates in space
-pub type Coordinates = Vec<f64>;
+pub type Coordinates = Box<[f64]>;
 
-/// represents an already evaluated point in space
+/// represents a evaluated coordinates in space
 #[derive(Clone)]
 pub struct Point
 {
@@ -11,13 +11,13 @@ pub struct Point
 
 impl Point
 {
-   /// computes the euclidian distance between two points
+   /// computes the euclidian distance between two sets of coordinate
    pub fn distance(p1: &Coordinates, p2: &Coordinates) -> f64
    {
       p1.iter().zip(p2.iter()).map(|(x, y)| (x - y).powf(2.)).sum::<f64>().sqrt()
    }
 
-   /// adds the point into the coordinates and returns the coordinates
+   /// adds the point to the coordinates and returns the coordinates
    fn add_to(&self, coordinates: Coordinates) -> Coordinates
    {
       coordinates.iter().zip(self.coordinates.iter()).map(|(x, y)| x + y).collect()
@@ -28,8 +28,7 @@ impl Point
    {
       let length = points.len() as f64;
       let mut points = points.iter();
-      let first =
-         points.next().expect("You must have at least one coordinate to average!").coordinates.clone();
+      let first = points.next().expect("You need at least one coordinate to average!").coordinates.clone();
       let sum = points.fold(first, |acc, x| x.add_to(acc));
       sum.iter().map(|sum| sum / length).collect()
    }
