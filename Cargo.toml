@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 priority-queue = "0.6.0"
 ordered-float = "1.0.2"
+argmin_testfunctions = "0.1.1"

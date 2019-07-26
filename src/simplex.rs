@@ -1,23 +1,23 @@
 use crate::point::*;
 use crate::function::*;
 use std::hash::{Hash, Hasher};
-use ordered_float::OrderedFloat;
 
 /// represents a simplex
 pub struct Simplex
 {
    pub corners: Vec<Point>,
    pub center: Coordinates,
+   pub difference: f64,
    ratio: f64
 }
 
 impl Simplex
 {
    /// creates a new simplex
-   fn new(corners: Vec<Point>, ratio: f64) -> Simplex
+   fn new(corners: Vec<Point>, ratio: f64, difference:f64) -> Simplex
    {
       let center = Point::average_coordinate(&corners);
-      Simplex { corners, center, ratio }
+      Simplex { corners, center, ratio, difference }
    }
 
    /// builds the initial unit simplex with one point per dimension plus an origin
@@ -38,11 +38,11 @@ impl Simplex
       corners.push(min_corner);
 
       // assemble the simplex
-      Simplex::new(corners, 1.)
+      Simplex::new(corners, 1., 0.)
    }
 
    /// takes a simplex and splits it
-   pub fn split(self, new_point: &Point) -> Vec<Simplex>
+   pub fn split(self, new_point: &Point, difference: f64) -> Vec<Simplex>
    {
       let mut result = vec![];
       let distances: Box<[f64]> = self.corners
@@ -64,7 +64,7 @@ impl Simplex
             // which is the ratio of its father multiplied by the fraction of its father occupied by the child
             let ratio = self.ratio * (distances[i] / total_distance);
 
-            let simplex = Simplex::new(corners, ratio);
+            let simplex = Simplex::new(corners, ratio, difference);
             result.push(simplex);
          }
       }
@@ -72,7 +72,7 @@ impl Simplex
    }
 
    /// returns a score for a simplex
-   pub fn evaluate(&self, difference: f64, exploration_depth: f64) -> f64
+   pub fn evaluate(&self, exploration_depth: f64) -> f64
    {
       // computes the distance from the center to each corner
       let inverse_distances: Vec<f64> =
@@ -87,6 +87,9 @@ impl Simplex
       // computes the number of split needed to reach the given ratio if we start from a regular simplex
       let dim = self.center.len() as f64;
       let split_number = self.ratio.log(dim + 1.).abs();
+
+      // insures that the difference is non zero
+      let difference = self.difference + std::f64::EPSILON;
 
       interpolated_value - difference * (split_number / exploration_depth)
    }
