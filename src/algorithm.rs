@@ -91,7 +91,8 @@ pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
 // ITERATOR BASED OPTIMIZER
 
 /// represents the current state of the search
-struct Optimizer
+#[derive(Clone)]
+pub struct Optimizer
 {
    exploration_depth: f64,
    search_space: SearchSpace,
@@ -103,7 +104,7 @@ struct Optimizer
 impl Optimizer
 {
    /// creates a new optimizer for the given search space
-   fn new(f: fn(&Coordinates) -> f64, input_interval: Vec<(f64, f64)>) -> Optimizer
+   pub fn new(f: fn(&Coordinates) -> f64, input_interval: Vec<(f64, f64)>) -> Optimizer
    {
       // builds initial conditions
       let exploration_depth = 6.;
@@ -131,9 +132,10 @@ impl Optimizer
 
    /// sets the exploration depth for the algorithm
    #[allow(dead_code)]
-   fn set_exploration_depth(&mut self, exploration_depth: usize)
+   pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
       self.exploration_depth = 1. + (exploration_depth as f64);
+      self
    }
 }
 

@@ -3,6 +3,7 @@ use crate::search_space::*;
 use std::hash::{Hash, Hasher};
 
 /// represents a simplex
+#[derive(Clone)]
 pub struct Simplex
 {
    /// the coordinate+evaluations of the corners of the simplex

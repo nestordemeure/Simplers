@@ -2,6 +2,7 @@ use crate::point::*;
 use ordered_float::OrderedFloat;
 
 /// encapsulate a function and its domain of definition
+#[derive(Clone)]
 pub struct SearchSpace
 {
    f: fn(&Coordinates) -> f64,
