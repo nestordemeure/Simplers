@@ -13,6 +13,8 @@ The strengths of this algorithm compared to Gaussian optimization would be the a
 - The `exploration_preference` (float) parameter has been replaced by an `exploration_depth` (unsigned integer) parameter with a different but, hopefully, clearer semantic.
 It represents how many split deep the algorithm can search before requiring higher-level exploration (0 meaning grid-search like exploration, 5 being a good default and large values (10+) being very exploitation/greedy focusses).
 
+- There are two implementations of the main loop, a fully integrated algorithm bit also an iterator based algorithm which gives the user full control on the stopping criteria.
+
 ## Potential improvement
 
 Do not hesitate to ask for improvements if needed. The list of things that could be done but will probably be left undone unless requested include :
@@ -31,9 +33,11 @@ Do not hesitate to ask for improvements if needed. The list of things that could
 
 Turn the algorithm into a library instead of an application.
 
-Implement the iterator trait on the algorithm to give full control over the stopping criteria to the user.
-
 Conducts tests using functions from [argmin_testfunctions](https://crates.io/crates/argmin_testfunctions).
+
+Adds code demonstration in the readme.
+
+Check the documentation of the code.
 
 ## Target
 

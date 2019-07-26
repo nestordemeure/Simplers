@@ -22,7 +22,7 @@ fn main()
 {
    //let input_interval = vec![(-10., 10.), (-10., 10.)];
    let input_interval = vec![(0., 1.), (0., 1.)];
-   let nb_iter = 300;
+   let nb_iter = 30;
    let (best_value, best_coordinates) = simple_optimizer(F, input_interval, 5, nb_iter);
    println!("best value : {} in [{}, {}]", best_value, best_coordinates[0], best_coordinates[1]);
 }
