@@ -4,99 +4,13 @@ use crate::search_space::*;
 use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 
-//-----------------------------------------------------------------------------
-// SINGLE FUNCTION OPTIMIZER
-
-/// takes a function to **maximise**, a vector of input intervals, an exploration depth and a number of iterations
-///
-/// exploration_depth represents the number of splits we can exploit before requiring higher-level exploration
-/// 0 represents full exploration (similar to grid search) while high numbers focus on exploitation (no need to go very high)
-/// 5 appears to be a good default value
-/// as long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter
-pub fn simple_optimizer(f: fn(&Coordinates) -> f64,
-                        input_interval: Vec<(f64, f64)>,
-                        exploration_depth: usize,
-                        nb_iter: usize)
-                        -> (f64, Coordinates)
-{
-   // builds initial conditions
-   let exploration_depth = 1. + (exploration_depth as f64);
-   let search_space = SearchSpace::new(f, input_interval);
-   let initial_simplex = Simplex::initial_simplex(&search_space);
-
-   // various values track through the iterations
-   let mut max_point = initial_simplex.corners
-                                      .iter()
-                                      .max_by_key(|c| OrderedFloat(c.value))
-                                      .expect("You need at least one dimension!")
-                                      .clone();
-   let mut min_value = initial_simplex.corners
-                                      .iter()
-                                      .map(|c| c.value)
-                                      .min_by_key(|&v| OrderedFloat(v))
-                                      .expect("You need at least one dimension!");
-   let mut iter = initial_simplex.corners.len();
-
-   // initialize priority queue
-   let mut queue: PriorityQueue<Simplex, OrderedFloat<f64>> = PriorityQueue::new();
-   queue.push(initial_simplex, OrderedFloat(0.)); // no need to evaluate the initial simplex as it will be poped immediatly
-
-   // runs for as many iterations as schredules or until the queue runs out
-   while (iter <= nb_iter) && !queue.is_empty()
-   {
-      // gets an up to date simplex
-      let mut simplex = queue.pop().expect("Impossible: The queue cannot be empty!").0;
-      let current_difference = max_point.value - min_value;
-      while simplex.difference != current_difference
-      {
-         // updates the simplex and pushes it back into the queue
-         simplex.difference = current_difference;
-         let new_evaluation = simplex.evaluate(exploration_depth);
-         queue.push(simplex, OrderedFloat(new_evaluation));
-         // pops a new simplex
-         simplex = queue.pop().expect("Impossible: The queue cannot be empty!").0;
-      }
-
-      // evaluate the center of the simplex
-      let coordinates = simplex.center.clone();
-      let value = search_space.evaluate(&coordinates);
-      let new_point = Point { coordinates, value };
-
-      // splits the simplex around its center and push the subsimplex into the queue
-      simplex.split(&new_point, current_difference)
-             .into_iter()
-             .map(|s| (OrderedFloat(s.evaluate(exploration_depth)), s))
-             .for_each(|(e, s)| {
-                queue.push(s, e);
-             });
-
-      // updates the difference
-      //let c = f.to_hypercube(new_point.coordinates.clone());
-      //println!("iter:{} value:{} in [{}, {}] <- [{}, {}]", iter, new_point.value, c[0], c[1], new_point.coordinates[0], new_point.coordinates[1]);
-      if value > max_point.value
-      {
-         max_point = new_point;
-      }
-      else if value < min_value
-      {
-         min_value = value;
-      }
-      iter += 1;
-   }
-
-   (max_point.value, search_space.to_hypercube(max_point.coordinates))
-}
-
-//-----------------------------------------------------------------------------
-// ITERATOR BASED OPTIMIZER
-
-/// represents the current state of the search
+/// represents the parameters and current state of the search
 #[derive(Clone)]
 pub struct Optimizer
 {
    exploration_depth: f64,
    search_space: SearchSpace,
-   pub max_point: Point,
+   pub best_point: Point,
    min_value: f64,
    queue: PriorityQueue<Simplex, OrderedFloat<f64>>
 }
@@ -107,16 +21,15 @@ impl Optimizer
    pub fn new(f: fn(&Coordinates) -> f64, input_interval: Vec<(f64, f64)>) -> Optimizer
    {
       // builds initial conditions
-      let exploration_depth = 6.;
       let search_space = SearchSpace::new(f, input_interval);
       let initial_simplex = Simplex::initial_simplex(&search_space);
 
       // various values track through the iterations
-      let max_point = initial_simplex.corners
-                                     .iter()
-                                     .max_by_key(|c| OrderedFloat(c.value))
-                                     .expect("You need at least one dimension!")
-                                     .clone();
+      let best_point = initial_simplex.corners
+                                      .iter()
+                                      .max_by_key(|c| OrderedFloat(c.value))
+                                      .expect("You need at least one dimension!")
+                                      .clone();
       let min_value = initial_simplex.corners
                                      .iter()
                                      .map(|c| c.value)
@@ -124,18 +37,37 @@ impl Optimizer
                                      .expect("You need at least one dimension!");
 
       // initialize priority queue
+      // no need to evaluate the initial simplex as it will be poped immediatly
       let mut queue: PriorityQueue<Simplex, OrderedFloat<f64>> = PriorityQueue::new();
-      queue.push(initial_simplex, OrderedFloat(0.)); // no need to evaluate the initial simplex as it will be poped immediatly
+      queue.push(initial_simplex, OrderedFloat(0.));
 
-      Optimizer { exploration_depth, search_space, max_point, min_value, queue }
+      let exploration_depth = 6.;
+      Optimizer { exploration_depth, search_space, best_point, min_value, queue }
    }
 
-   /// sets the exploration depth for the algorithm
-   #[allow(dead_code)]
+   /// sets the exploration depth for the algorithm, useful when using the iterator interface
+   ///
+   /// exploration_depth represents the number of splits we can exploit before requiring higher-level exploration
+   /// 0 represents full exploration (similar to grid search) while high numbers focus on exploitation (no need to go very high)
+   /// 5 appears to be a good default value
+   /// as long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter
+   ///
+   /// WARNING: this function will not update the score of already splitted simplex and thus should be used before any iteration
    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
       self.exploration_depth = 1. + (exploration_depth as f64);
       self
+   }
+
+   /// self contained optimization algorithm
+   /// takes a function to **maximise**, a vector of input intervals, an exploration depth and a number of iterations
+   pub fn optimize(f: fn(&Coordinates) -> f64,
+                   input_interval: Vec<(f64, f64)>,
+                   nb_iterations: usize)
+                   -> (f64, Coordinates)
+   {
+      let initial_iteration_number = input_interval.len() + 1;
+      Optimizer::new(f, input_interval).skip(nb_iterations - initial_iteration_number).next().unwrap()
    }
 }
 
@@ -144,19 +76,15 @@ impl Iterator for Optimizer
 {
    type Item = (f64, Coordinates);
 
+   /// runs an iteration of the optimization algorithm and returns the best result so far
    fn next(&mut self) -> Option<Self::Item>
    {
-      if self.queue.is_empty()
-      {
-         return None;
-      }
-
       // gets the exploration depth fo rlater use
       let exploration_depth = self.exploration_depth;
 
       // gets an up to date simplex
       let mut simplex = self.queue.pop().expect("Impossible: The queue cannot be empty!").0;
-      let current_difference = self.max_point.value - self.min_value;
+      let current_difference = self.best_point.value - self.min_value;
       while simplex.difference != current_difference
       {
          // updates the simplex and pushes it back into the queue
@@ -181,16 +109,18 @@ impl Iterator for Optimizer
              });
 
       // updates the difference
-      if value > self.max_point.value
+      if value > self.best_point.value
       {
-         self.max_point = new_point;
+         self.best_point = new_point;
       }
       else if value < self.min_value
       {
          self.min_value = value;
       }
 
-      let result = (self.max_point.value, self.search_space.to_hypercube(self.max_point.coordinates.clone()));
-      Some(result)
+      // gets the best value so far
+      let best_value = self.best_point.value;
+      let best_coordinate = self.search_space.to_hypercube(self.best_point.coordinates.clone());
+      Some((best_value, best_coordinate))
    }
 }

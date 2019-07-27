@@ -3,7 +3,6 @@ mod simplex;
 mod algorithm;
 mod search_space;
 use point::Coordinates;
-use algorithm::simple_optimizer;
 use algorithm::Optimizer;
 
 /// test function
@@ -24,7 +23,7 @@ fn main()
    // test F
    let input_interval_f = vec![(0., 1.), (0., 1.)];
    let nb_iter = 30;
-   let (best_value_f, best_coordinates_f) = simple_optimizer(F, input_interval_f, 5, nb_iter);
+   let (best_value_f, best_coordinates_f) = Optimizer::optimize(F, input_interval_f, nb_iter);
    println!("best value F : {} in [{}, {}]", best_value_f, best_coordinates_f[0], best_coordinates_f[1]);
 
    // test g with iterator
