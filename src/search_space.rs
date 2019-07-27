@@ -2,18 +2,17 @@ use crate::point::*;
 use ordered_float::OrderedFloat;
 
 /// encapsulate a function and its domain of definition
-#[derive(Clone)]
 pub struct SearchSpace
 {
-   f: fn(&Coordinates) -> f64,
+   f: Box<dyn Fn(&[f64]) -> f64>,
    hypercube: Vec<(f64, f64)>,
    pub dimension: usize
 }
 
-impl SearchSpace
+impl<'f> SearchSpace
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: fn(&Coordinates) -> f64, hypercube: Vec<(f64, f64)>) -> SearchSpace
+   pub fn new(f: Box<dyn Fn(&[f64]) -> f64>, hypercube: Vec<(f64, f64)>) -> SearchSpace
    {
       let dimension = hypercube.len();
       SearchSpace { f, hypercube, dimension }

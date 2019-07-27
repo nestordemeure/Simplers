@@ -5,7 +5,6 @@ use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 
 /// represents the parameters and current state of the search
-#[derive(Clone)]
 pub struct Optimizer
 {
    exploration_depth: f64,
@@ -18,7 +17,7 @@ pub struct Optimizer
 impl Optimizer
 {
    /// creates a new optimizer for the given search space
-   pub fn new(f: fn(&Coordinates) -> f64, input_interval: Vec<(f64, f64)>) -> Optimizer
+   pub fn new(f: Box<dyn Fn(&[f64]) -> f64>, input_interval: Vec<(f64, f64)>) -> Optimizer
    {
       // builds initial conditions
       let search_space = SearchSpace::new(f, input_interval);
@@ -60,14 +59,25 @@ impl Optimizer
    }
 
    /// self contained optimization algorithm
-   /// takes a function to **maximise**, a vector of input intervals, an exploration depth and a number of iterations
-   pub fn optimize(f: fn(&Coordinates) -> f64,
+   /// takes a function to maximise, a vector of input intervals and a number of iterations
+   pub fn maximize(f: Box<dyn Fn(&[f64]) -> f64>,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
                    -> (f64, Coordinates)
    {
       let initial_iteration_number = input_interval.len() + 1;
       Optimizer::new(f, input_interval).skip(nb_iterations - initial_iteration_number).next().unwrap()
+   }
+
+   /// self contained optimization algorithm
+   /// takes a function to maximise, a vector of input intervals and a number of iterations
+   pub fn minimize(f: Box<dyn Fn(&[f64]) -> f64>,
+                   input_interval: Vec<(f64, f64)>,
+                   nb_iterations: usize)
+                   -> (f64, Coordinates)
+   {
+      let minus_f: Box<dyn Fn(&[f64]) -> f64> = Box::new(move |x| -(f)(x));
+      Optimizer::maximize(minus_f, input_interval, nb_iterations)
    }
 }
 
