@@ -2,43 +2,28 @@ mod point;
 mod simplex;
 mod algorithm;
 mod search_space;
-use point::Coordinates;
 use algorithm::Optimizer;
 use argmin_testfunctions::*;
 
-/// test function
-#[allow(dead_code)]
-fn g(v: &Coordinates) -> f64
-{
-   let x = v[0];
-   let y = v[1];
-   1. + 1. / ((x + 3.) * (x + 3.) + y * y).exp() + 0.5 / ((x + 1.).powf(2.) + (y + 2.).powf(2.)).exp()
-}
-
-/// test function defined as a lambda
-#[allow(dead_code)]
-static F: fn(&Coordinates) -> f64 = |v| -((v[0] - 0.2).powf(2.) + (v[1] - 0.3).powf(2.)).sqrt();
-
 fn main()
 {
-   // test F
-   /*let input_interval_f = vec![(0., 1.), (0., 1.)];
-   let nb_iter = 30;
-   let (best_value_f, best_coordinates_f) = Optimizer::optimize(F, input_interval_f, nb_iter);
-   println!("best value F : {} in [{}, {}]", best_value_f, best_coordinates_f[0], best_coordinates_f[1]);*/
-
-   // test g with iterator
-   /*let input_interval_g = vec![(-10., 10.), (-10., 10.)];
-   let optimizer = Optimizer::new(g, input_interval_g).set_exploration_depth(5);
-   let (best_value_g, best_coordinates_g) = optimizer.skip(300).next().unwrap();
-   println!("best value g : {} in [{}, {}]", best_value_g, best_coordinates_g[0], best_coordinates_g[1]);*/
+   let nb_iter = 3000;
 
    {
-      // minimum f(0.5, 0.25) = 3.3851993182036826
+      // pichety
       let input_interval = vec![(0., 1.), (0., 1.)];
-      let nb_iter = 300;
       let (best_value, best_coordinates) = Optimizer::minimize(picheny, input_interval, nb_iter);
       let true_best_value = picheny(&[0.5, 0.25]);
+      println!("best value : {} in [{}, {}] (target: {})",
+               best_value, best_coordinates[0], best_coordinates[1], true_best_value);
+   }
+
+   {
+      // Ackley (the optimization is fairly bad on this function full of local minimums)
+      const DIM: usize = 2;
+      let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-32.768, 32.768)).collect();
+      let (best_value, best_coordinates) = Optimizer::minimize(ackley, input_interval, nb_iter);
+      let true_best_value = ackley(&[0.; DIM]);
       println!("best value : {} in [{}, {}] (target: {})",
                best_value, best_coordinates[0], best_coordinates[1], true_best_value);
    }

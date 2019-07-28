@@ -6,17 +6,19 @@ pub struct SearchSpace
 {
    f: Box<dyn Fn(&[f64]) -> f64>,
    hypercube: Vec<(f64, f64)>,
+   pub minimize: bool,
    pub dimension: usize
 }
 
 impl<'f> SearchSpace
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, hypercube: Vec<(f64, f64)>) -> SearchSpace
+   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, hypercube: Vec<(f64, f64)>, minimize: bool)
+              -> SearchSpace
    {
       let dimension = hypercube.len();
       let f = Box::new(f);
-      SearchSpace { f, hypercube, dimension }
+      SearchSpace { f, hypercube, minimize, dimension }
    }
 
    /// Converts coordinates from the hypercube to the unit simplex
@@ -59,6 +61,14 @@ impl<'f> SearchSpace
    pub fn evaluate(&self, c: &Coordinates) -> f64
    {
       let c_hypercube = self.to_hypercube(c.clone());
-      (self.f)(&c_hypercube)
+      let evaluation = (self.f)(&c_hypercube);
+      if self.minimize
+      {
+         -evaluation
+      }
+      else
+      {
+         evaluation
+      }
    }
 }

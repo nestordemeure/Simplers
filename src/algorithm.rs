@@ -17,10 +17,13 @@ pub struct Optimizer
 impl Optimizer
 {
    /// creates a new optimizer for the given search space
-   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, input_interval: Vec<(f64, f64)>) -> Optimizer
+   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static,
+              input_interval: Vec<(f64, f64)>,
+              minimize: bool)
+              -> Optimizer
    {
       // builds initial conditions
-      let search_space = SearchSpace::new(f, input_interval);
+      let search_space = SearchSpace::new(f, input_interval, minimize);
       let initial_simplex = Simplex::initial_simplex(&search_space);
 
       // various values track through the iterations
@@ -52,6 +55,7 @@ impl Optimizer
    /// as long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter
    ///
    /// WARNING: this function will not update the score of already splitted simplex and thus should be used before any iteration
+   #[allow(dead_code)]
    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
       self.exploration_depth = 1. + (exploration_depth as f64);
@@ -60,24 +64,31 @@ impl Optimizer
 
    /// self contained optimization algorithm
    /// takes a function to maximise, a vector of input intervals and a number of iterations
+   #[allow(dead_code)]
    pub fn maximize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
                    -> (f64, Coordinates)
    {
       let initial_iteration_number = input_interval.len() + 1;
-      Optimizer::new(f, input_interval).skip(nb_iterations - initial_iteration_number).next().unwrap()
+      let should_minimize = false;
+      Optimizer::new(f, input_interval, should_minimize).skip(nb_iterations - initial_iteration_number)
+                                                        .next()
+                                                        .unwrap()
    }
 
    /// self contained optimization algorithm
    /// takes a function to maximise, a vector of input intervals and a number of iterations
-   pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static, //Box<dyn Fn(&[f64]) -> f64>,
+   pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
                    -> (f64, Coordinates)
    {
-      let minus_f : Box<dyn Fn(&[f64]) -> f64> = Box::new(move |x| -(f)(x));
-      Optimizer::maximize(minus_f, input_interval, nb_iterations)
+      let initial_iteration_number = input_interval.len() + 1;
+      let should_minimize = true;
+      Optimizer::new(f, input_interval, should_minimize).skip(nb_iterations - initial_iteration_number)
+                                                        .next()
+                                                        .unwrap()
    }
 }
 
@@ -129,7 +140,8 @@ impl Iterator for Optimizer
       }
 
       // gets the best value so far
-      let best_value = self.best_point.value;
+      let best_value =
+         if self.search_space.minimize { -self.best_point.value } else { self.best_point.value };
       let best_coordinate = self.search_space.to_hypercube(self.best_point.coordinates.clone());
       Some((best_value, best_coordinate))
    }
