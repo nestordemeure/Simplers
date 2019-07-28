@@ -50,8 +50,8 @@ impl<'f> SearchSpace
                  .max_by_key(|&&c| OrderedFloat(c))
                  .map(|c| *c)
                  .expect("You should have at least one coordinate.");
-      let ratio = 1.; //if max == 0. { 0. } else { sum / max };
-                      // goes from the simplex to the target hypercube
+      let ratio = if max == 0. { 0. } else { sum / max };
+      // goes from the simplex to the target hypercube
       c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| inf + x * ratio * (sup - inf)).collect()
    }
 

@@ -39,9 +39,6 @@ Adds code demonstration in the readme.
 
 Check the documentation of the code.
 
-Performances seem underwhelming when using mappings
-might be corrceted by computing the distance between points in the correct space
-
 ## Target
 
 Submit project to [crates.io](https://crates.io/).
