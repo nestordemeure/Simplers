@@ -33,8 +33,7 @@ impl<'f> SearchSpace
       // goes to the unit simplex
       let sum: f64 = c.iter().sum();
       let max = c.iter()
-                 .map(|&c| OrderedFloat(c))
-                 .max()
+                 .max_by_key(|&&c| OrderedFloat(c))
                  .map(|c| *c)
                  .expect("You should have at least one coordinate.");
       let ratio = if sum == 0. { 0. } else { max / sum };
@@ -48,12 +47,11 @@ impl<'f> SearchSpace
       // gets the ratio to go from the unit hypercube to the unit simplex
       let sum: f64 = c.iter().sum();
       let max = c.iter()
-                 .map(|&c| OrderedFloat(c))
-                 .max()
+                 .max_by_key(|&&c| OrderedFloat(c))
                  .map(|c| *c)
                  .expect("You should have at least one coordinate.");
-      let ratio = if max == 0. { 0. } else { max / sum };
-      // goes from the simplex to the target hypercube
+      let ratio = 1.; //if max == 0. { 0. } else { sum / max };
+                      // goes from the simplex to the target hypercube
       c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| inf + x * ratio * (sup - inf)).collect()
    }
 

@@ -33,14 +33,14 @@ impl Simplex
       let origin = vec![0.; search_space.dimension].into_boxed_slice();
 
       // builds one corner per dimension
-      let mut corners: Vec<Rc<Point>> =
-         (0..search_space.dimension).map(|i| {
-                                       let mut coordinates = origin.clone();
-                                       coordinates[i] = 1.;
-                                       let value = search_space.evaluate(&coordinates);
-                                       Rc::new(Point { coordinates, value })
-                                    })
-                                    .collect();
+      let mut corners: Vec<Rc<Point>> = (0..search_space.dimension).map(|i| {
+                                                                      let mut coordinates = origin.clone();
+                                                                      coordinates[i] = 1.;
+                                                                      let value =
+                                                                         search_space.evaluate(&coordinates);
+                                                                      Rc::new(Point { coordinates, value })
+                                                                   })
+                                                                   .collect();
 
       // adds the corner corresponding to the origin
       let min_corner = Point { value: search_space.evaluate(&origin), coordinates: origin };
@@ -58,7 +58,7 @@ impl Simplex
       let distances: Box<[f64]> = self.corners
                                       .iter()
                                       .map(|c| &c.coordinates)
-                                      .map(|c| Point::distance(c, &new_point.coordinates))
+                                      .map(|c| Point::distance_simplex(c, &new_point.coordinates))
                                       .collect();
       let total_distance: f64 = distances.iter().sum();
 
@@ -90,7 +90,7 @@ impl Simplex
    {
       // computes the inverse of the distance from the center to each corner
       let inverse_distances: Vec<f64> =
-         self.corners.iter().map(|c| 1. / Point::distance(&c.coordinates, &self.center)).collect();
+         self.corners.iter().map(|c| 1. / Point::distance_simplex(&c.coordinates, &self.center)).collect();
       let total_inverse_distance: f64 = inverse_distances.iter().sum();
 
       // computes the value of the center, interpolated from the corners
