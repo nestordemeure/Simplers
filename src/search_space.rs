@@ -12,9 +12,10 @@ pub struct SearchSpace
 impl<'f> SearchSpace
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: Box<dyn Fn(&[f64]) -> f64>, hypercube: Vec<(f64, f64)>) -> SearchSpace
+   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, hypercube: Vec<(f64, f64)>) -> SearchSpace
    {
       let dimension = hypercube.len();
+      let f = Box::new(f);
       SearchSpace { f, hypercube, dimension }
    }
 

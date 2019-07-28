@@ -17,7 +17,7 @@ pub struct Optimizer
 impl Optimizer
 {
    /// creates a new optimizer for the given search space
-   pub fn new(f: Box<dyn Fn(&[f64]) -> f64>, input_interval: Vec<(f64, f64)>) -> Optimizer
+   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, input_interval: Vec<(f64, f64)>) -> Optimizer
    {
       // builds initial conditions
       let search_space = SearchSpace::new(f, input_interval);
@@ -60,7 +60,7 @@ impl Optimizer
 
    /// self contained optimization algorithm
    /// takes a function to maximise, a vector of input intervals and a number of iterations
-   pub fn maximize(f: Box<dyn Fn(&[f64]) -> f64>,
+   pub fn maximize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
                    -> (f64, Coordinates)
@@ -71,12 +71,12 @@ impl Optimizer
 
    /// self contained optimization algorithm
    /// takes a function to maximise, a vector of input intervals and a number of iterations
-   pub fn minimize(f: Box<dyn Fn(&[f64]) -> f64>,
+   pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static, //Box<dyn Fn(&[f64]) -> f64>,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
                    -> (f64, Coordinates)
    {
-      let minus_f: Box<dyn Fn(&[f64]) -> f64> = Box::new(move |x| -(f)(x));
+      let minus_f : Box<dyn Fn(&[f64]) -> f64> = Box::new(move |x| -(f)(x));
       Optimizer::maximize(minus_f, input_interval, nb_iterations)
    }
 }

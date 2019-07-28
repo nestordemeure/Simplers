@@ -37,7 +37,9 @@ fn main()
       // minimum f(0.5, 0.25) = 3.3851993182036826
       let input_interval = vec![(0., 1.), (0., 1.)];
       let nb_iter = 300;
-      let (best_value, best_coordinates) = Optimizer::minimize(Box::new(picheny), input_interval, nb_iter);
-      println!("best value : {} in [{}, {}]", best_value, best_coordinates[0], best_coordinates[1]);
+      let (best_value, best_coordinates) = Optimizer::minimize(picheny, input_interval, nb_iter);
+      let true_best_value = picheny(&[0.5, 0.25]);
+      println!("best value : {} in [{}, {}] (target: {})",
+               best_value, best_coordinates[0], best_coordinates[1], true_best_value);
    }
 }
