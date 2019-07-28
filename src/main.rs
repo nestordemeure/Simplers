@@ -20,7 +20,7 @@ fn main()
 
    {
       // Ackley (the optimization is fairly bad on this function full of local minimums)
-      const DIM: usize = 2;
+      const DIM: usize = 50;
       let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-32.768, 32.768)).collect();
       let (best_value, best_coordinates) = Optimizer::minimize(ackley, input_interval, nb_iter);
       let true_best_value = ackley(&[0.; DIM]);

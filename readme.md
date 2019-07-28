@@ -33,7 +33,7 @@ Do not hesitate to ask for improvements if needed. The list of things that could
 
 Turn the algorithm into a library instead of an application.
 
-Conducts tests using functions from [argmin_testfunctions](https://crates.io/crates/argmin_testfunctions).
+Conducts tests using functions from [argmin_testfunctions](https://crates.io/crates/argmin_testfunctions) or [Test_functions_for_optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization).
 
 Adds code demonstration in the readme.
 
@@ -41,7 +41,7 @@ Check the documentation of the code.
 
 Add minimize to iterator interface.
 
-Reduce memory consumption to run properly in high dim 
+Reduce memory consumption to run properly in high dim
 (cloning the corners at each split is costly, a Rc would be better).
 
 ## Target

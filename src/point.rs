@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 /// represents coordinates in space
 pub type Coordinates = Box<[f64]>;
 
@@ -24,7 +26,7 @@ impl Point
    }
 
    /// computes the average of the coordinates
-   pub fn average_coordinate(points: &[Point]) -> Coordinates
+   pub fn average_coordinate(points: &[Rc<Point>]) -> Coordinates
    {
       let length = points.len() as f64;
       let mut points = points.iter();

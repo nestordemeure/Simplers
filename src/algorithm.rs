@@ -3,13 +3,14 @@ use crate::simplex::*;
 use crate::search_space::*;
 use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
+use std::rc::Rc;
 
 /// represents the parameters and current state of the search
 pub struct Optimizer
 {
    exploration_depth: f64,
    search_space: SearchSpace,
-   pub best_point: Point,
+   pub best_point: Rc<Point>,
    min_value: f64,
    queue: PriorityQueue<Simplex, OrderedFloat<f64>>
 }
@@ -100,7 +101,7 @@ impl Iterator for Optimizer
    /// runs an iteration of the optimization algorithm and returns the best result so far
    fn next(&mut self) -> Option<Self::Item>
    {
-      // gets the exploration depth fo rlater use
+      // gets the exploration depth for later use
       let exploration_depth = self.exploration_depth;
 
       // gets an up to date simplex
@@ -119,10 +120,10 @@ impl Iterator for Optimizer
       // evaluate the center of the simplex
       let coordinates = simplex.center.clone();
       let value = self.search_space.evaluate(&coordinates);
-      let new_point = Point { coordinates, value };
+      let new_point = Rc::new(Point { coordinates, value });
 
       // splits the simplex around its center and push the subsimplex into the queue
-      simplex.split(&new_point, current_difference)
+      simplex.split(new_point.clone(), current_difference)
              .into_iter()
              .map(|s| (OrderedFloat(s.evaluate(exploration_depth)), s))
              .for_each(|(e, s)| {

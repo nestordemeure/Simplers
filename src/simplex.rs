@@ -1,13 +1,14 @@
 use crate::point::*;
 use crate::search_space::*;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 
 /// represents a simplex
 #[derive(Clone)]
 pub struct Simplex
 {
    /// the coordinate+evaluations of the corners of the simplex
-   pub corners: Vec<Point>,
+   pub corners: Vec<Rc<Point>>,
    /// the coordinates of the center of the simplex (which is where it is evaluated)
    pub center: Coordinates,
    /// what was the difference between the best value and the worst value when the simplex was last evaluated ?
@@ -19,7 +20,7 @@ pub struct Simplex
 impl Simplex
 {
    /// creates a new simplex
-   fn new(corners: Vec<Point>, ratio: f64, difference: f64) -> Simplex
+   fn new(corners: Vec<Rc<Point>>, ratio: f64, difference: f64) -> Simplex
    {
       let center = Point::average_coordinate(&corners);
       Simplex { corners, center, ratio, difference }
@@ -32,18 +33,18 @@ impl Simplex
       let origin = vec![0.; search_space.dimension].into_boxed_slice();
 
       // builds one corner per dimension
-      let mut corners: Vec<Point> =
+      let mut corners: Vec<Rc<Point>> =
          (0..search_space.dimension).map(|i| {
                                        let mut coordinates = origin.clone();
                                        coordinates[i] = 1.;
                                        let value = search_space.evaluate(&coordinates);
-                                       Point { coordinates, value }
+                                       Rc::new(Point { coordinates, value })
                                     })
                                     .collect();
 
       // adds the corner corresponding to the origin
       let min_corner = Point { value: search_space.evaluate(&origin), coordinates: origin };
-      corners.push(min_corner);
+      corners.push(Rc::new(min_corner));
 
       // assemble the simplex
       Simplex::new(corners, 1., 0.)
@@ -51,7 +52,7 @@ impl Simplex
 
    /// takes a simplex and splits it around a point
    /// difference is the best value so far minus the worst value so far
-   pub fn split(self, new_point: &Point, difference: f64) -> Vec<Simplex>
+   pub fn split(self, new_point: Rc<Point>, difference: f64) -> Vec<Simplex>
    {
       // computes the distance between the new point and each corners of the simplex
       let distances: Box<[f64]> = self.corners
