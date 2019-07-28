@@ -87,7 +87,8 @@ impl Optimizer
    {
       let initial_iteration_number = input_interval.len() + 1;
       let should_minimize = true;
-      Optimizer::new(f, input_interval, should_minimize).skip(nb_iterations - initial_iteration_number)
+      Optimizer::new(f, input_interval, should_minimize).set_exploration_depth(5)
+                                                        .skip(nb_iterations - initial_iteration_number)
                                                         .next()
                                                         .unwrap()
    }
