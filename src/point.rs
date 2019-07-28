@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use ordered_float::OrderedFloat;
 
 /// represents coordinates in space
 pub type Coordinates = Box<[f64]>;
