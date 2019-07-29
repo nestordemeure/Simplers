@@ -1,12 +1,12 @@
-/*#![deny(missing_docs,
-missing_debug_implementations,
-missing_copy_implementations,
-trivial_casts,
-trivial_numeric_casts,
-unsafe_code,
-unstable_features,
-unused_import_braces,
-unused_qualifications)]*/
+#![deny(//missing_docs,
+        //missing_debug_implementations,
+        missing_copy_implementations,
+        trivial_casts,
+        trivial_numeric_casts,
+        unsafe_code,
+        unstable_features,
+        unused_import_braces,
+        unused_qualifications)]
 
 mod point;
 mod simplex;
@@ -17,7 +17,7 @@ pub use algorithm::Optimizer;
 #[cfg(test)]
 mod tests
 {
-   use crate::algorithm::Optimizer;
+   /*use crate::algorithm::Optimizer;
    use argmin_testfunctions::*;
    const ITER: usize = 100;
 
@@ -81,5 +81,5 @@ mod tests
          .take(ITER)
          .enumerate()
          .for_each(|(i,(v,c))| println!("iter {}: {} in {:?}", i, v, c));
-   }
+   }*/
 }

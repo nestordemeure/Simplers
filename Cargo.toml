@@ -1,12 +1,18 @@
 [package]
 name = "simplers_optimization"
 version = "0.1.0"
-authors = ["Nestor Demeure <nestor@nestor-HP-ProBook-650-G1>"]
+authors = ["Nestor Demeure"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# description of the crate
+# see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata
+description = "A Rust implementation of the Simple(x) black-box optimization algorithm."
+repository = "https://github.com/nestordemeure/Simplers"
+readme = "readme.md"
+keywords = ["optimization", "blackbox-optimization", "global-optimization"]
+categories = ["algorithms", "science"] # crates.io/category_slugs
+license = "Apache-2.0"
 
 [dependencies]
 priority-queue = "0.6.0"
 ordered-float = "1.0.2"
-argmin_testfunctions = "0.1.1"

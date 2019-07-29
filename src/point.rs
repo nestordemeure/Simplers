@@ -4,7 +4,7 @@ use std::rc::Rc;
 pub type Coordinates = Box<[f64]>;
 
 /// Represents an evaluated coordinates in space.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Point
 {
    pub coordinates: Coordinates,

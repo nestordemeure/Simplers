@@ -2,11 +2,10 @@
 
 A Rust implementation of the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization algorithm.
 
-The strengths of this algorithm compared to Gaussian optimization would be the ability to deal with a large number of sample and high dimension gracefully.
+This algorithm, which should not be confused with the [simplex algorithm](https://en.wikipedia.org/wiki/Simplex_algorithm), is closest to [bayesian optimization](https://en.wikipedia.org/wiki/Bayesian_optimization).
+Its strengths compared to bayesian optimization would be the ability to deal with a large number of sample and high dimension gracefully.
 
-**This is a work in progress.**
-
-## Divergences to the original algorithm
+## Divergences to the reference implementation
 
 - The user can define the search space as an hypercube (which is then mapped to a simplex using [this](https://math.stackexchange.com/a/385071/495073) method).
 
@@ -15,7 +14,7 @@ It represents how many split deep the algorithm can search before requiring high
 
 - There are two implementations of the main loop, a fully integrated algorithm bit also an iterator based algorithm which gives the user full control on the stopping criteria.
 
-## Potential improvement
+## Potential future developements
 
 Do not hesitate to ask for improvements if needed. The list of things that could be done but will probably be left undone unless requested include :
 
@@ -29,20 +28,8 @@ Do not hesitate to ask for improvements if needed. The list of things that could
 
 - Let the user modify the `exploration_depth` parameter while the function is running (to increase it over time à la simmulated annealing).
 
-## TODO
-
-Turn the algorithm into a library instead of an application.
-
-Conducts tests using functions from [argmin_testfunctions](https://crates.io/crates/argmin_testfunctions) or [Test_functions_for_optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization).
-
-Adds code demonstration in the readme.
-
-Check the documentation of the code.
-
 ## Target
 
-Submit project to [crates.io](https://crates.io/).
-
-Once properly usable, the project could be submited to [www.arewelearningyet.com/metaheuristics](http://www.arewelearningyet.com/metaheuristics/).
+The project could be submited to [www.arewelearningyet.com/metaheuristics](http://www.arewelearningyet.com/metaheuristics/).
 
 We could offer to integrate the project into the [argmin](https://docs.rs/argmin/0.2.4/argmin/) optimization framework (to make the algorithm more accesible, future-proof and easier to compare with the state of the art).
