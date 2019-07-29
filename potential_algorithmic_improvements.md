@@ -1,6 +1,6 @@
 # Potential algorithmic improvements
 
-Reflexion on
+Reflexion on ways to improve / experiment with the algorithm.
 
 ## Initialization
 
