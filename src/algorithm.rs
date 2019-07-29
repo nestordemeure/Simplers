@@ -5,7 +5,7 @@ use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
-/// Represents the parameters and current state of the search.
+/// Stores the parameters and current state of a search.
 pub struct Optimizer
 {
    exploration_depth: f64,
@@ -18,15 +18,34 @@ pub struct Optimizer
 impl Optimizer
 {
    /// Creates a new optimizer to explore the given search space with the iterator interface.
+   ///
    /// Takes a function, a vector of intervals describing the input and a boolean describing wether it is a minimization problem (as oppozed to a miximization problem).
    /// Each cal to the `.next()` function (cf iterator trait) will run an iteration of search and output the best result so far.
+   ///
+   /// ```rust
+   /// # fn main() {
+   /// let f = |v| v[0] * v[1];
+   /// let input_interval = vec![(-10., 10.), (-20., 20.)];
+   /// let should_minimize = true;
+   ///
+   /// // runs the search for 30 iterations
+   /// // then waits until we find a point good enough
+   /// // finally stores the best value so far
+   /// let (min_value, coordinates) = Optimizer::new(f, input_interval, should_minimize)
+   ///                                          .skip(30)
+   ///                                          .take_while(|(value,coordinates)| value > 1. )
+   ///                                          .next().unwrap();
+   ///
+   /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
+   /// # }
+   /// ```
    pub fn new(f: impl Fn(&[f64]) -> f64 + 'static,
               input_interval: Vec<(f64, f64)>,
-              minimize: bool)
+              should_minimize: bool)
               -> Optimizer
    {
       // builds initial conditions
-      let search_space = SearchSpace::new(f, input_interval, minimize);
+      let search_space = SearchSpace::new(f, input_interval, should_minimize);
       let initial_simplex = Simplex::initial_simplex(&search_space);
 
       // various values track through the iterations
@@ -52,13 +71,38 @@ impl Optimizer
 
    /// Sets the exploration depth for the algorithm, useful when using the iterator interface.
    ///
-   /// `exploration_depth` represents the number of splits we can exploit before requiring higher-level exploration
-   /// 0 represents full exploration (similar to grid search) while high numbers focus on exploitation (no need to go very high)
-   /// 5 appears to be a good default value
-   /// as long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter
+   /// `exploration_depth` represents the number of splits we can exploit before requiring higher-level exploration.
+   /// As long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter :
    ///
-   /// **WARNING**: this function should be used before any iteration (as it will not update the score of already splitted simplex)
-   #[allow(dead_code)]
+   /// - 0 represents full exploration (similar to grid search)
+   /// - high numbers focus on exploitation (no need to go very high)
+   /// - 5 appears to be a good default value
+   ///
+   /// **WARNING**: this function should not be used before after an iteration
+   /// (as it will not update the score of already computed points for the next iterations
+   /// which will degrade the quality of the algorithm)
+   ///
+   /// ```rust
+   /// # fn main() {
+   /// let f = |v| v[0] * v[1];
+   /// let input_interval = vec![(-10., 10.), (-20., 20.)];
+   /// let should_minimize = true;
+   ///
+   /// // sets exploration_depth to be very greedy
+   /// let (min_value_greedy, _) = Optimizer::new(f, input_interval, should_minimize)
+   ///                                          .set_exploration_depth(20)
+   ///                                          .skip(100)
+   ///                                          .next().unwrap();
+   ///
+   /// // sets exploration_depth to focus on exploration
+   /// let (min_value_explore, _) = Optimizer::new(f, input_interval, should_minimize)
+   ///                                          .set_exploration_depth(0)
+   ///                                          .skip(100)
+   ///                                          .next().unwrap();
+   ///
+   /// println!("greedy result : {} vs exploration result : {}", min_value_greedy, min_value_explore);
+   /// # }
+   /// ```
    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
       self.exploration_depth = 1. + (exploration_depth as f64);
@@ -66,8 +110,19 @@ impl Optimizer
    }
 
    /// Self contained optimization algorithm.
+   ///
    /// Takes a function to maximize, a vector of intervals describing the input and a number of iterations.
-   #[allow(dead_code)]
+   ///
+   /// ```rust
+   /// # fn main() {
+   /// let f = |v| v[0] + v[1];
+   /// let input_interval = vec![(-10., 10.), (-20., 20.)];
+   /// let nb_iterations = 100;
+   ///
+   /// let (max_value, coordinates) = Optimizer::maximize(f, input_interval, nb_iterations);
+   /// println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
+   /// # }
+   /// ```
    pub fn maximize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
@@ -81,7 +136,19 @@ impl Optimizer
    }
 
    /// Self contained optimization algorithm.
+   ///
    /// Takes a function to minimize, a vector of intervals describing the input and a number of iterations.
+   ///
+   /// ```rust
+   /// # fn main() {
+   /// let f = |v| v[0] * v[1];
+   /// let input_interval = vec![(-10., 10.), (-20., 20.)];
+   /// let nb_iterations = 100;
+   ///
+   /// let (min_value, coordinates) = Optimizer::minimize(f, input_interval, nb_iterations);
+   /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
+   /// # }
+   /// ```
    pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)

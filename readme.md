@@ -7,7 +7,36 @@ Its strengths compared to bayesian optimization would be the ability to deal wit
 
 ## Usage
 
-**TODO**
+There are two ways to use the algorithm, either use one of the `Optimizer::minimize` / `Optimizer::maximize` functions :
+
+```rust
+let f = |v| v[0] + v[1];
+let input_interval = vec![(-10., 10.), (-20., 20.)];
+let nb_iterations = 100;
+
+let (max_value, coordinates) = Optimizer::maximize(f, input_interval, nb_iterations);
+println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
+```
+
+Or use an iterator if you want to set `exploration_depth` to an exotic value or to have fine grained control on the stopping criteria :
+
+```rust
+let f = |v| v[0] * v[1];
+let input_interval = vec![(-10., 10.), (-20., 20.)];
+let should_minimize = true;
+
+// sets `exploration_depth` to be greedy
+// runs the search for 30 iterations
+// then waits until we find a point good enough
+// finally stores the best value so far
+let (min_value, coordinates) = Optimizer::new(f, input_interval, should_minimize)
+                                       .set_exploration_depth(10)
+                                       .skip(30)
+                                       .take_while(|(value,coordinates)| value > 1. )
+                                       .next().unwrap();
+
+println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
+```
 
 ## Divergences to the reference implementation
 
