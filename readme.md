@@ -38,7 +38,7 @@ let (min_value, coordinates) = Optimizer::new(f, input_interval, should_minimize
 println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
 ```
 
-## Divergences to the reference implementation
+## Divergences from the reference implementation
 
 - The user can define the search space as an hypercube (which is then mapped to a simplex using [this](https://math.stackexchange.com/a/385071/495073) method).
 

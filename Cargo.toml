@@ -8,7 +8,7 @@ edition = "2018"
 # see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata
 description = "A Rust implementation of the Simple(x) black-box optimization algorithm."
 repository = "https://github.com/nestordemeure/Simplers"
-documentation="https://docs.rs/simplers_optimization"
+#documentation="https://docs.rs/simplers_optimization"
 readme = "readme.md"
 keywords = ["optimization", "black-box", "global-optimization"]
 categories = ["algorithms", "science"] # crates.io/category_slugs
