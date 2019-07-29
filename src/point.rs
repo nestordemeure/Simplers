@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-/// represents coordinates in space
+/// Represents coordinates in space.
 pub type Coordinates = Box<[f64]>;
 
-/// represents a evaluated coordinates in space
+/// Represents an evaluated coordinates in space.
 #[derive(Clone)]
 pub struct Point
 {

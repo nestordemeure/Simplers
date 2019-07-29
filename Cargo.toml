@@ -1,5 +1,5 @@
 [package]
-name = "simplex"
+name = "simplers_optimization"
 version = "0.1.0"
 authors = ["Nestor Demeure <nestor@nestor-HP-ProBook-650-G1>"]
 edition = "2018"

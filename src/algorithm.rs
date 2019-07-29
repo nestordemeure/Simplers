@@ -5,19 +5,21 @@ use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
-/// represents the parameters and current state of the search
+/// Represents the parameters and current state of the search.
 pub struct Optimizer
 {
    exploration_depth: f64,
    search_space: SearchSpace,
-   pub best_point: Rc<Point>,
+   best_point: Rc<Point>,
    min_value: f64,
    queue: PriorityQueue<Simplex, OrderedFloat<f64>>
 }
 
 impl Optimizer
 {
-   /// creates a new optimizer for the given search space
+   /// Creates a new optimizer to explore the given search space with the iterator interface.
+   /// Takes a function, a vector of intervals describing the input and a boolean describing wether it is a minimization problem (as oppozed to a miximization problem).
+   /// Each cal to the `.next()` function (cf iterator trait) will run an iteration of search and output the best result so far.
    pub fn new(f: impl Fn(&[f64]) -> f64 + 'static,
               input_interval: Vec<(f64, f64)>,
               minimize: bool)
@@ -48,14 +50,14 @@ impl Optimizer
       Optimizer { exploration_depth, search_space, best_point, min_value, queue }
    }
 
-   /// sets the exploration depth for the algorithm, useful when using the iterator interface
+   /// Sets the exploration depth for the algorithm, useful when using the iterator interface.
    ///
-   /// exploration_depth represents the number of splits we can exploit before requiring higher-level exploration
+   /// `exploration_depth` represents the number of splits we can exploit before requiring higher-level exploration
    /// 0 represents full exploration (similar to grid search) while high numbers focus on exploitation (no need to go very high)
    /// 5 appears to be a good default value
    /// as long as one stays in a reasonable range (5-10), the algorithm should not be very sensible to the parameter
    ///
-   /// WARNING: this function will not update the score of already splitted simplex and thus should be used before any iteration
+   /// **WARNING**: this function should be used before any iteration (as it will not update the score of already splitted simplex)
    #[allow(dead_code)]
    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
@@ -63,8 +65,8 @@ impl Optimizer
       self
    }
 
-   /// self contained optimization algorithm
-   /// takes a function to maximise, a vector of input intervals and a number of iterations
+   /// Self contained optimization algorithm.
+   /// Takes a function to maximize, a vector of intervals describing the input and a number of iterations.
    #[allow(dead_code)]
    pub fn maximize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
@@ -78,8 +80,8 @@ impl Optimizer
                                                         .unwrap()
    }
 
-   /// self contained optimization algorithm
-   /// takes a function to maximise, a vector of input intervals and a number of iterations
+   /// Self contained optimization algorithm.
+   /// Takes a function to minimize, a vector of intervals describing the input and a number of iterations.
    pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static,
                    input_interval: Vec<(f64, f64)>,
                    nb_iterations: usize)
