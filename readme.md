@@ -10,12 +10,12 @@ Its strengths, compared to bayesian optimization, would be the ability to deal w
 There are two ways to use the algorithm, either use one of the `Optimizer::minimize` / `Optimizer::maximize` functions :
 
 ```rust
-let f = |v| v[0] + v[1];
-let input_interval = vec![(-10., 10.), (-20., 20.)];
+let f = |v| v[0] + v[1] * v[2];
+let input_interval = vec![(-10., 10.), (-20., 20.), (0, 5.)];
 let nb_iterations = 100;
 
 let (max_value, coordinates) = Optimizer::maximize(f, input_interval, nb_iterations);
-println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
+println!("max value: {} found in [{}, {}, {}]", max_value, coordinates[0], coordinates[1], coordinates[2]);
 ```
 
 Or use an iterator if you want to set `exploration_depth` to an exotic value or to have fine grained control on the stopping criteria :
