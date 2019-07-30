@@ -34,6 +34,7 @@ I am unhappy with the current formula for two reasons :
 - it uses the difference between the best and worst points so far which implies that we need to update our scores
 
 One could imagine using a classical gaussian process + bayesian optimization formula instead (using the corners as the only data point to give a score to the center point).
+This might be close to [Tree-GP: A Scalable Bayesian Global Numerical Optimization algorithm](https://dspace.library.uu.nl/bitstream/handle/1874/307362/paper.pdf?sequence=1) conceptualy.
 
 ## Tree structure
 
