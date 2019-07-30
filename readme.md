@@ -56,3 +56,5 @@ Do not hesitate to ask for improvements. The list of things that could be done b
 - Let the user explore several points in parallel.
 
 - Let the user perform the search offline.
+
+- We could offer to integrate the project into the [argmin](https://docs.rs/argmin/0.2.4/argmin/) optimization framework (to make the algorithm more accesible, future-proof and easier to compare with the state of the art).
