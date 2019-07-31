@@ -9,7 +9,7 @@ edition = "2018"
 description = "A Rust implementation of the Simple(x) black-box optimization algorithm."
 repository = "https://github.com/nestordemeure/Simplers"
 readme = "readme.md"
-keywords = ["optimization", "black-box", "global-optimization"]
+keywords = ["optimization", "optimisation", "black-box", "global-optimization", "global-optimisation"]
 categories = ["algorithms", "science"] # crates.io/category_slugs
 license = "Apache-2.0"
 
