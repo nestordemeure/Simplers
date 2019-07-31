@@ -22,6 +22,8 @@ impl Optimizer
    /// Takes a function, a vector of intervals describing the input and a boolean describing wether it is a minimization problem (as oppozed to a miximization problem).
    /// Each cal to the `.next()` function (cf iterator trait) will run an iteration of search and output the best result so far.
    ///
+   /// **Warning:** In d dimenssions, this function will perform d+1 evaluation (call to f) for the initialisation of the search (those should be taken into account when counting iterations).
+   /// 
    /// ```rust
    /// # fn main() {
    /// let f = |v| v[0] * v[1];
