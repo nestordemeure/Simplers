@@ -1,6 +1,6 @@
 [package]
 name = "simplers_optimization"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Nestor Demeure"]
 edition = "2018"
 
