@@ -1,7 +1,7 @@
 //!A Rust implementation of the [Simple(x)](https://github.com/chrisstroemel/Simple) global optimization algorithm.
 //!
 //!This algorithm, which should not be confused with the [simplex algorithm](https://en.wikipedia.org/wiki/Simplex_algorithm), is closest to [bayesian optimization](https://en.wikipedia.org/wiki/Bayesian_optimization).
-//!Its strengths compared to bayesian optimization would be the ability to deal with a large number of sample and high dimension gracefully.
+//!Its strengths compared to bayesian optimization are the ability to deal with a large number of sample and high dimension efficiently.
 //!
 //!There are two ways to use the algorithm, either use one of the `Optimizer::minimize` / `Optimizer::maximize` functions :
 //!
