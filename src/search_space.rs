@@ -1,20 +1,23 @@
 use crate::point::*;
 use ordered_float::OrderedFloat;
+use num_traits::Float;
 
 /// encapsulate a function and its domain of definition
-pub struct SearchSpace
+pub struct SearchSpace<CoordFloat: Float, ValueFloat: Float>
 {
-   f: Box<dyn Fn(&[f64]) -> f64>,
-   hypercube: Vec<(f64, f64)>,
+   f: Box<dyn Fn(&[CoordFloat]) -> ValueFloat>,
+   hypercube: Vec<(CoordFloat, CoordFloat)>,
    pub minimize: bool,
    pub dimension: usize
 }
 
-impl<'f> SearchSpace
+impl<CoordFloat: Float, ValueFloat: Float> SearchSpace<CoordFloat, ValueFloat>
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static, hypercube: Vec<(f64, f64)>, minimize: bool)
-              -> SearchSpace
+   pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+              hypercube: Vec<(CoordFloat, CoordFloat)>,
+              minimize: bool)
+              -> Self
    {
       let dimension = hypercube.len();
       let f = Box::new(f);
@@ -25,38 +28,41 @@ impl<'f> SearchSpace
    /// This fucntion is useful when one wants to suggest a point to the algorithm
    /// for the formula used, see: https://math.stackexchange.com/a/385071/495073
    #[allow(dead_code)]
-   pub fn to_simplex(&self, c: Coordinates) -> Coordinates
+   pub fn to_simplex(&self, c: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
    {
       // goes to the unit hypercube
-      let c: Coordinates =
-         c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| (x - inf) / (sup - inf)).collect();
+      let c: Coordinates<CoordFloat> =
+         c.into_iter().zip(self.hypercube.iter()).map(|(&x, &(inf, sup))| (x - inf) / (sup - inf)).collect();
       // goes to the unit simplex
-      let sum: f64 = c.iter().sum();
+      let sum = c.iter().map(|&c| c).fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
       let max = c.iter()
-                 .max_by_key(|&&c| OrderedFloat(c))
-                 .map(|c| *c)
+                 .map(|&c| c)
+                 .max_by_key(|&c| OrderedFloat(c))
                  .expect("You should have at least one coordinate.");
-      let ratio = if sum == 0. { 0. } else { max / sum };
-      c.into_iter().map(|x| x * ratio).collect()
+      let ratio = if sum.is_zero() { CoordFloat::zero() } else { max / sum };
+      c.into_iter().map(|&x| x * ratio).collect()
    }
 
    /// converts coordinates from the unit simplex to the hypercube
    /// formula deduced from: https://math.stackexchange.com/a/385071/495073
-   pub fn to_hypercube(&self, c: Coordinates) -> Coordinates
+   pub fn to_hypercube(&self, c: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
    {
       // gets the ratio to go from the unit hypercube to the unit simplex
-      let sum: f64 = c.iter().sum();
+      let sum = c.iter().map(|&c| c).fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
       let max = c.iter()
-                 .max_by_key(|&&c| OrderedFloat(c))
-                 .map(|c| *c)
+                 .map(|&c| c)
+                 .max_by_key(|&c| OrderedFloat(c))
                  .expect("You should have at least one coordinate.");
-      let ratio = if max == 0. { 0. } else { sum / max };
+      let ratio = if max.is_zero() { CoordFloat::zero() } else { sum / max };
       // goes from the simplex to the target hypercube
-      c.into_iter().zip(self.hypercube.iter()).map(|(x, (inf, sup))| inf + x * ratio * (sup - inf)).collect()
+      c.into_iter()
+       .zip(self.hypercube.iter())
+       .map(|(&x, &(inf, sup))| inf + x * ratio * (sup - inf))
+       .collect()
    }
 
    /// takes coordinates in the unit simplex and evaluate them with the function
-   pub fn evaluate(&self, c: &Coordinates) -> f64
+   pub fn evaluate(&self, c: &Coordinates<CoordFloat>) -> ValueFloat
    {
       let c_hypercube = self.to_hypercube(c.clone());
       let evaluation = (self.f)(&c_hypercube);

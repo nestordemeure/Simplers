@@ -3,19 +3,23 @@ use crate::simplex::*;
 use crate::search_space::*;
 use priority_queue::PriorityQueue;
 use ordered_float::OrderedFloat;
+use num_traits::Float;
 use std::rc::Rc;
 
 /// Stores the parameters and current state of a search.
-pub struct Optimizer
+///
+/// - `ValueFloat` is the float type used to represent the evaluations (such as f64)
+/// - `CoordFloat` is the float type used to represent the coordinates (such as f32)
+pub struct Optimizer<CoordFloat: Float, ValueFloat: Float>
 {
-   exploration_depth: f64,
-   search_space: SearchSpace,
-   best_point: Rc<Point>,
-   min_value: f64,
-   queue: PriorityQueue<Simplex, OrderedFloat<f64>>
+   exploration_depth: ValueFloat,
+   search_space: SearchSpace<CoordFloat, ValueFloat>,
+   best_point: Rc<Point<CoordFloat, ValueFloat>>,
+   min_value: ValueFloat,
+   queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>>
 }
 
-impl Optimizer
+impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
 {
    /// Creates a new optimizer to explore the given search space with the iterator interface.
    ///
@@ -41,10 +45,10 @@ impl Optimizer
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn new(f: impl Fn(&[f64]) -> f64 + 'static,
-              input_interval: Vec<(f64, f64)>,
+   pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+              input_interval: Vec<(CoordFloat, CoordFloat)>,
               should_minimize: bool)
-              -> Optimizer
+              -> Self
    {
       // builds initial conditions
       let search_space = SearchSpace::new(f, input_interval, should_minimize);
@@ -64,10 +68,10 @@ impl Optimizer
 
       // initialize priority queue
       // no need to evaluate the initial simplex as it will be poped immediatly
-      let mut queue: PriorityQueue<Simplex, OrderedFloat<f64>> = PriorityQueue::new();
-      queue.push(initial_simplex, OrderedFloat(0.));
+      let mut queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>> = PriorityQueue::new();
+      queue.push(initial_simplex, OrderedFloat(ValueFloat::zero()));
 
-      let exploration_depth = 6.;
+      let exploration_depth = ValueFloat::from(6.).unwrap();
       Optimizer { exploration_depth, search_space, best_point, min_value, queue }
    }
 
@@ -107,7 +111,7 @@ impl Optimizer
    /// ```
    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
    {
-      self.exploration_depth = 1. + (exploration_depth as f64);
+      self.exploration_depth = ValueFloat::from(exploration_depth + 1).unwrap();
       self
    }
 
@@ -125,10 +129,10 @@ impl Optimizer
    /// println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn maximize(f: impl Fn(&[f64]) -> f64 + 'static,
-                   input_interval: Vec<(f64, f64)>,
+   pub fn maximize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+                   input_interval: Vec<(CoordFloat, CoordFloat)>,
                    nb_iterations: usize)
-                   -> (f64, Coordinates)
+                   -> (ValueFloat, Coordinates<CoordFloat>)
    {
       let initial_iteration_number = input_interval.len() + 1;
       let should_minimize = false;
@@ -151,10 +155,10 @@ impl Optimizer
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn minimize(f: impl Fn(&[f64]) -> f64 + 'static,
-                   input_interval: Vec<(f64, f64)>,
+   pub fn minimize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+                   input_interval: Vec<(CoordFloat, CoordFloat)>,
                    nb_iterations: usize)
-                   -> (f64, Coordinates)
+                   -> (ValueFloat, Coordinates<CoordFloat>)
    {
       let initial_iteration_number = input_interval.len() + 1;
       let should_minimize = true;
@@ -165,9 +169,9 @@ impl Optimizer
 }
 
 /// implements iterator for the Optimizer to give full control on the stopping condition to the user
-impl Iterator for Optimizer
+impl<CoordFloat: Float, ValueFloat: Float> Iterator for Optimizer<CoordFloat, ValueFloat>
 {
-   type Item = (f64, Coordinates);
+   type Item = (ValueFloat, Coordinates<CoordFloat>);
 
    /// runs an iteration of the optimization algorithm and returns the best result so far
    fn next(&mut self) -> Option<Self::Item>
