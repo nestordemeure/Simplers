@@ -27,10 +27,10 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// Each cal to the `.next()` function (cf iterator trait) will run an iteration of search and output the best result so far.
    ///
    /// **Warning:** In d dimenssions, this function will perform d+1 evaluation (call to f) for the initialisation of the search (those should be taken into account when counting iterations).
-   /// 
+   ///
    /// ```rust
    /// # fn main() {
-   /// let f = |v| v[0] * v[1];
+   /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let should_minimize = true;
    ///
@@ -68,7 +68,8 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
 
       // initialize priority queue
       // no need to evaluate the initial simplex as it will be poped immediatly
-      let mut queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>> = PriorityQueue::new();
+      let mut queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>> =
+         PriorityQueue::new();
       queue.push(initial_simplex, OrderedFloat(ValueFloat::zero()));
 
       let exploration_depth = ValueFloat::from(6.).unwrap();
@@ -90,7 +91,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    ///
    /// ```rust
    /// # fn main() {
-   /// let f = |v| v[0] * v[1];
+   /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let should_minimize = true;
    ///
@@ -121,7 +122,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    ///
    /// ```rust
    /// # fn main() {
-   /// let f = |v| v[0] + v[1];
+   /// let f = |v:&[f64]| v[0] + v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///
@@ -147,7 +148,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    ///
    /// ```rust
    /// # fn main() {
-   /// let f = |v| v[0] * v[1];
+   /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///

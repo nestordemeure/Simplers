@@ -7,7 +7,7 @@
 //!
 //!```rust
 //!# fn main() {
-//!let f = |v| v[0] + v[1] * v[2];
+//!let f = |v:&[f64]| v[0] + v[1] * v[2];
 //!let input_interval = vec![(-10., 10.), (-20., 20.), (0., 5.)];
 //!let nb_iterations = 100;
 //!
@@ -20,7 +20,7 @@
 //!
 //!```rust
 //!# fn main() {
-//!let f = |v| v[0] * v[1];
+//!let f = |v:&[f64]| v[0] * v[1];
 //!let input_interval = vec![(-10., 10.), (-20., 20.)];
 //!let should_minimize = true;
 //!
