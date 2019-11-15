@@ -32,7 +32,7 @@ let should_minimize = true;
 let (min_value, coordinates) = Optimizer::new(f, input_interval, should_minimize)
                                        .set_exploration_depth(10)
                                        .skip(30)
-                                       .take_while(|(value,coordinates)| value > 1. )
+                                       .skip_while(|(value,coordinates)| value > 1. )
                                        .next().unwrap();
 
 println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);

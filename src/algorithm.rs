@@ -29,6 +29,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// **Warning:** In d dimenssions, this function will perform d+1 evaluation (call to f) for the initialisation of the search (those should be taken into account when counting iterations).
    ///
    /// ```rust
+   /// # use simplers_optimization::Optimizer;
    /// # fn main() {
    /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
@@ -37,16 +38,16 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// // runs the search for 30 iterations
    /// // then waits until we find a point good enough
    /// // finally stores the best value so far
-   /// let (min_value, coordinates) = Optimizer::new(f, input_interval, should_minimize)
+   /// let (min_value, coordinates) = Optimizer::new(f, &input_interval, should_minimize)
    ///                                          .skip(30)
-   ///                                          .take_while(|(value,coordinates)| value > 1. )
+   ///                                          .skip_while(|(value,coordinates)| *value > 1. )
    ///                                          .next().unwrap();
    ///
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
    pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
-              input_interval: Vec<(CoordFloat, CoordFloat)>,
+              input_interval: &[(CoordFloat, CoordFloat)],
               should_minimize: bool)
               -> Self
    {
@@ -90,19 +91,20 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// which will degrade the quality of the algorithm)
    ///
    /// ```rust
+   /// # use simplers_optimization::Optimizer;
    /// # fn main() {
    /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let should_minimize = true;
    ///
    /// // sets exploration_depth to be very greedy
-   /// let (min_value_greedy, _) = Optimizer::new(f, input_interval, should_minimize)
+   /// let (min_value_greedy, _) = Optimizer::new(f, &input_interval, should_minimize)
    ///                                          .set_exploration_depth(20)
    ///                                          .skip(100)
    ///                                          .next().unwrap();
    ///
    /// // sets exploration_depth to focus on exploration
-   /// let (min_value_explore, _) = Optimizer::new(f, input_interval, should_minimize)
+   /// let (min_value_explore, _) = Optimizer::new(f, &input_interval, should_minimize)
    ///                                          .set_exploration_depth(0)
    ///                                          .skip(100)
    ///                                          .next().unwrap();
@@ -121,17 +123,18 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// Takes a function to maximize, a vector of intervals describing the input and a number of iterations.
    ///
    /// ```rust
+   /// # use simplers_optimization::Optimizer;
    /// # fn main() {
    /// let f = |v:&[f64]| v[0] + v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///
-   /// let (max_value, coordinates) = Optimizer::maximize(f, input_interval, nb_iterations);
+   /// let (max_value, coordinates) = Optimizer::maximize(f, &input_interval, nb_iterations);
    /// println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
    pub fn maximize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
-                   input_interval: Vec<(CoordFloat, CoordFloat)>,
+                   input_interval: &[(CoordFloat, CoordFloat)],
                    nb_iterations: usize)
                    -> (ValueFloat, Coordinates<CoordFloat>)
    {
@@ -147,17 +150,18 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// Takes a function to minimize, a vector of intervals describing the input and a number of iterations.
    ///
    /// ```rust
+   /// # use simplers_optimization::Optimizer;
    /// # fn main() {
    /// let f = |v:&[f64]| v[0] * v[1];
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///
-   /// let (min_value, coordinates) = Optimizer::minimize(f, input_interval, nb_iterations);
+   /// let (min_value, coordinates) = Optimizer::minimize(f, &input_interval, nb_iterations);
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
    pub fn minimize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
-                   input_interval: Vec<(CoordFloat, CoordFloat)>,
+                   input_interval: &[(CoordFloat, CoordFloat)],
                    nb_iterations: usize)
                    -> (ValueFloat, Coordinates<CoordFloat>)
    {

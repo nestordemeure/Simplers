@@ -15,13 +15,13 @@ impl<CoordFloat: Float, ValueFloat: Float> SearchSpace<CoordFloat, ValueFloat>
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
    pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
-              hypercube: Vec<(CoordFloat, CoordFloat)>,
+              hypercube: &[(CoordFloat, CoordFloat)],
               minimize: bool)
               -> Self
    {
       let dimension = hypercube.len();
       let f = Box::new(f);
-      SearchSpace { f, hypercube, minimize, dimension }
+      SearchSpace { f, hypercube: hypercube.to_vec(), minimize, dimension }
    }
 
    /// Converts coordinates from the hypercube to the unit simplex
