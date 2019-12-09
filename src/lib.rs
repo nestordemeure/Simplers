@@ -12,7 +12,7 @@
 //!let input_interval = vec![(-10., 10.), (-20., 20.), (0., 5.)];
 //!let nb_iterations = 100;
 //!
-//!let (max_value, coordinates) = Optimizer::maximize(f, &input_interval, nb_iterations);
+//!let (max_value, coordinates) = Optimizer::maximize(&f, &input_interval, nb_iterations);
 //!println!("max value: {} found in [{}, {}, {}]", max_value, coordinates[0], coordinates[1], coordinates[2]);
 //!# }
 //!```
@@ -30,7 +30,7 @@
 //!// runs the search for 30 iterations
 //!// then waits until we find a point good enough
 //!// finally stores the best value so far
-//!let (min_value, coordinates) = Optimizer::new(f, &input_interval, should_minimize)
+//!let (min_value, coordinates) = Optimizer::new(&f, &input_interval, should_minimize)
 //!                                       .set_exploration_depth(10)
 //!                                       .skip(30)
 //!                                       .skip_while(|(value,coordinates)| *value > 1. )
@@ -67,7 +67,7 @@ mod tests
    {
       const DIM: usize = 5;
       let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-5., 5.)).collect();
-      let (best_value, best_coordinates) = Optimizer::minimize(styblinski_tang, &input_interval, ITER);
+      let (best_value, best_coordinates) = Optimizer::minimize(&styblinski_tang, &input_interval, ITER);
       let true_best_value = styblinski_tang(&[-2.903534; DIM]);
       println!("best value : {} in [{}, {}] (target: {})",
                best_value, best_coordinates[0], best_coordinates[1], true_best_value);
@@ -77,7 +77,7 @@ mod tests
    fn test_himmelblau_iterator()
    {
       let input_interval: Vec<(f64, f64)> = vec![(-5., 5.), (-5., 5.)];
-      Optimizer::new(himmelblau, input_interval, true)
+      Optimizer::new(&himmelblau, input_interval, true)
          .take(ITER)
          .enumerate()
          .for_each(|(i,(v,c))| println!("iter {}: {} in {:?}", i, v, c));

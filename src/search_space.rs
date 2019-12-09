@@ -3,24 +3,23 @@ use ordered_float::OrderedFloat;
 use num_traits::Float;
 
 /// encapsulate a function and its domain of definition
-pub struct SearchSpace<CoordFloat: Float, ValueFloat: Float>
+pub struct SearchSpace<'f_lifetime, CoordFloat: Float, ValueFloat: Float>
 {
-   f: Box<dyn Fn(&[CoordFloat]) -> ValueFloat>,
+   f: &'f_lifetime dyn Fn(&[CoordFloat]) -> ValueFloat,
    hypercube: Vec<(CoordFloat, CoordFloat)>,
    pub minimize: bool,
    pub dimension: usize
 }
 
-impl<CoordFloat: Float, ValueFloat: Float> SearchSpace<CoordFloat, ValueFloat>
+impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> SearchSpace<'f_lifetime, CoordFloat, ValueFloat>
 {
    /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
-   pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+   pub fn new(f: &'f_lifetime impl Fn(&[CoordFloat]) -> ValueFloat,
               hypercube: &[(CoordFloat, CoordFloat)],
               minimize: bool)
               -> Self
    {
       let dimension = hypercube.len();
-      let f = Box::new(f);
       SearchSpace { f, hypercube: hypercube.to_vec(), minimize, dimension }
    }
 

@@ -10,16 +10,16 @@ use std::rc::Rc;
 ///
 /// - `ValueFloat` is the float type used to represent the evaluations (such as f64)
 /// - `CoordFloat` is the float type used to represent the coordinates (such as f32)
-pub struct Optimizer<CoordFloat: Float, ValueFloat: Float>
+pub struct Optimizer<'f_lifetime, CoordFloat: Float, ValueFloat: Float>
 {
    exploration_depth: ValueFloat,
-   search_space: SearchSpace<CoordFloat, ValueFloat>,
+   search_space: SearchSpace<'f_lifetime, CoordFloat, ValueFloat>,
    best_point: Rc<Point<CoordFloat, ValueFloat>>,
    min_value: ValueFloat,
    queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>>
 }
 
-impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
+impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> Optimizer<'f_lifetime, CoordFloat, ValueFloat>
 {
    /// Creates a new optimizer to explore the given search space with the iterator interface.
    ///
@@ -38,7 +38,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// // runs the search for 30 iterations
    /// // then waits until we find a point good enough
    /// // finally stores the best value so far
-   /// let (min_value, coordinates) = Optimizer::new(f, &input_interval, should_minimize)
+   /// let (min_value, coordinates) = Optimizer::new(&f, &input_interval, should_minimize)
    ///                                          .skip(30)
    ///                                          .skip_while(|(value,coordinates)| *value > 1. )
    ///                                          .next().unwrap();
@@ -46,7 +46,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn new(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+   pub fn new(f: &'f_lifetime impl Fn(&[CoordFloat]) -> ValueFloat,
               input_interval: &[(CoordFloat, CoordFloat)],
               should_minimize: bool)
               -> Self
@@ -98,13 +98,13 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// let should_minimize = true;
    ///
    /// // sets exploration_depth to be very greedy
-   /// let (min_value_greedy, _) = Optimizer::new(f, &input_interval, should_minimize)
+   /// let (min_value_greedy, _) = Optimizer::new(&f, &input_interval, should_minimize)
    ///                                          .set_exploration_depth(20)
    ///                                          .skip(100)
    ///                                          .next().unwrap();
    ///
    /// // sets exploration_depth to focus on exploration
-   /// let (min_value_explore, _) = Optimizer::new(f, &input_interval, should_minimize)
+   /// let (min_value_explore, _) = Optimizer::new(&f, &input_interval, should_minimize)
    ///                                          .set_exploration_depth(0)
    ///                                          .skip(100)
    ///                                          .next().unwrap();
@@ -129,11 +129,11 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///
-   /// let (max_value, coordinates) = Optimizer::maximize(f, &input_interval, nb_iterations);
+   /// let (max_value, coordinates) = Optimizer::maximize(&f, &input_interval, nb_iterations);
    /// println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn maximize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+   pub fn maximize(f: &'f_lifetime impl Fn(&[CoordFloat]) -> ValueFloat,
                    input_interval: &[(CoordFloat, CoordFloat)],
                    nb_iterations: usize)
                    -> (ValueFloat, Coordinates<CoordFloat>)
@@ -156,11 +156,11 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
    /// let input_interval = vec![(-10., 10.), (-20., 20.)];
    /// let nb_iterations = 100;
    ///
-   /// let (min_value, coordinates) = Optimizer::minimize(f, &input_interval, nb_iterations);
+   /// let (min_value, coordinates) = Optimizer::minimize(&f, &input_interval, nb_iterations);
    /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
    /// # }
    /// ```
-   pub fn minimize(f: impl Fn(&[CoordFloat]) -> ValueFloat + 'static,
+   pub fn minimize(f: &'f_lifetime impl Fn(&[CoordFloat]) -> ValueFloat,
                    input_interval: &[(CoordFloat, CoordFloat)],
                    nb_iterations: usize)
                    -> (ValueFloat, Coordinates<CoordFloat>)
@@ -174,7 +174,8 @@ impl<CoordFloat: Float, ValueFloat: Float> Optimizer<CoordFloat, ValueFloat>
 }
 
 /// implements iterator for the Optimizer to give full control on the stopping condition to the user
-impl<CoordFloat: Float, ValueFloat: Float> Iterator for Optimizer<CoordFloat, ValueFloat>
+impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> Iterator
+   for Optimizer<'f_lifetime, CoordFloat, ValueFloat>
 {
    type Item = (ValueFloat, Coordinates<CoordFloat>);
 
