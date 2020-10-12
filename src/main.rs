@@ -16,7 +16,7 @@ fn main()
       // finally stores the best value so far
       let (min_value, coordinates) =
          Optimizer::new(&f, &input_interval, should_minimize).skip(30)
-                                                             .skip_while(|(value, coordinates)| *value > 1.)
+                                                             .skip_while(|(value, __coordinates)| *value > 1.)
                                                              .next()
                                                              .unwrap();
 
@@ -41,7 +41,7 @@ fn main()
       // finally stores the best value so far
       let (min_value, coordinates) =
          Optimizer::new(&f, &input_interval, should_minimize).skip(30)
-                                                             .skip_while(|(value, coordinates)| *value > 1.)
+                                                             .skip_while(|(value, __coordinates)| *value > 1.)
                                                              .next()
                                                              .unwrap();
 
