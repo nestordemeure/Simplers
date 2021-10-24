@@ -1,6 +1,6 @@
 [package]
 name = "simplers_optimization"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Nestor Demeure"]
 edition = "2018"
 
@@ -15,6 +15,6 @@ categories = ["algorithms", "science"] # crates.io/category_slugs
 license = "Apache-2.0"
 
 [dependencies]
-priority-queue = "1.0.1"
-ordered-float = "2.0.0"
-num-traits = "0.2.12"
+priority-queue = "1.2.0"
+ordered-float = "2.8.0"
+num-traits = "0.2.14"
