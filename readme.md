@@ -49,7 +49,12 @@ It represents how many split deep the algorithm can search before requiring high
 
 ## Potential future developements
 
-Do not hesitate to ask for improvements. The list of things that could be done but will probably be left undone unless requested includes :
+Do not hesitate to ask for improvements.
+The list of things that could be done but will probably be left undone unless requested includes :
+
+- Add (optional) [serde](https://serde.rs/) support to save searches.
+
+- Add an option to introduce noise in the [point generation](https://github.com/nestordemeure/Simplers/blob/master/src/point.rs#L35) (?).
 
 - Let the user suggest some points to speed-up the search (will require the ability to check wether a point is in a simplex or a triangularization algorithm).
 
