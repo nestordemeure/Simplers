@@ -61,7 +61,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Simplex<CoordFloat, ValueFloat>
                                       .map(|c| &c.coordinates)
                                       .map(|c| Point::distance(c, &new_point.coordinates))
                                       .collect();
-      let total_distance: ValueFloat = distances.iter().map(|&c| c).fold(ValueFloat::zero(), ::std::ops::Add::add);
+      let total_distance: ValueFloat = distances.iter().copied().fold(ValueFloat::zero(), ::std::ops::Add::add);
 
       // computes each sub simplex
       let mut result = vec![];
@@ -93,7 +93,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Simplex<CoordFloat, ValueFloat>
       // computes the inverse of the distance from the center to each corner
       let inverse_distances: Vec<ValueFloat> =
          self.corners.iter().map(|c| ValueFloat::one() / Point::distance(&c.coordinates, &self.center)).collect();
-      let total_inverse_distance: ValueFloat = inverse_distances.iter().map(|&d| d).fold(ValueFloat::zero(), ::std::ops::Add::add);
+      let total_inverse_distance: ValueFloat = inverse_distances.iter().copied().fold(ValueFloat::zero(), ::std::ops::Add::add);
 
       // computes the value of the center, interpolated from the corners
       let interpolated_value =

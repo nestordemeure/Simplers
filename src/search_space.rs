@@ -31,15 +31,14 @@ impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> SearchSpace<'f_lifetime,
    {
       // goes to the unit hypercube
       let c: Coordinates<CoordFloat> =
-         c.into_iter().zip(self.hypercube.iter()).map(|(&x, &(inf, sup))| (x - inf) / (sup - inf)).collect();
+         c.iter().zip(self.hypercube.iter()).map(|(&x, &(inf, sup))| (x - inf) / (sup - inf)).collect();
       // goes to the unit simplex
-      let sum = c.iter().map(|&c| c).fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
-      let max = c.iter()
-                 .map(|&c| c)
+      let sum = c.iter().copied().fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
+      let max = c.iter().copied()
                  .max_by_key(|&c| OrderedFloat(c))
                  .expect("You should have at least one coordinate.");
       let ratio = if sum.is_zero() { CoordFloat::zero() } else { max / sum };
-      c.into_iter().map(|&x| x * ratio).collect()
+      c.iter().map(|&x| x * ratio).collect()
    }
 
    /// converts coordinates from the unit simplex to the hypercube
@@ -47,14 +46,13 @@ impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> SearchSpace<'f_lifetime,
    pub fn to_hypercube(&self, c: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
    {
       // gets the ratio to go from the unit hypercube to the unit simplex
-      let sum = c.iter().map(|&c| c).fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
-      let max = c.iter()
-                 .map(|&c| c)
+      let sum = c.iter().copied().fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
+      let max = c.iter().copied()
                  .max_by_key(|&c| OrderedFloat(c))
                  .expect("You should have at least one coordinate.");
       let ratio = if max.is_zero() { CoordFloat::zero() } else { sum / max };
       // goes from the simplex to the target hypercube
-      c.into_iter()
+      c.iter()
        .zip(self.hypercube.iter())
        .map(|(&x, &(inf, sup))| inf + x * ratio * (sup - inf))
        .collect()

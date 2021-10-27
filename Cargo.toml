@@ -1,8 +1,8 @@
 [package]
 name = "simplers_optimization"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Nestor Demeure"]
-edition = "2018"
+edition = "2021"
 
 # description of the crate
 # see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata

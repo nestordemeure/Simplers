@@ -140,8 +140,7 @@ impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> Optimizer<'f_lifetime, C
    {
       let initial_iteration_number = input_interval.len() + 1;
       let should_minimize = false;
-      Optimizer::new(f, input_interval, should_minimize).skip(nb_iterations - initial_iteration_number)
-                                                        .next()
+      Optimizer::new(f, input_interval, should_minimize).nth(nb_iterations - initial_iteration_number)
                                                         .unwrap()
    }
 
@@ -167,8 +166,7 @@ impl<'f_lifetime, CoordFloat: Float, ValueFloat: Float> Optimizer<'f_lifetime, C
    {
       let initial_iteration_number = input_interval.len() + 1;
       let should_minimize = true;
-      Optimizer::new(f, input_interval, should_minimize).skip(nb_iterations - initial_iteration_number)
-                                                        .next()
+      Optimizer::new(f, input_interval, should_minimize).nth(nb_iterations - initial_iteration_number)
                                                         .unwrap()
    }
 }
