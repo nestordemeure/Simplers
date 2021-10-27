@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 mod point;
 mod simplex;
 mod search_space;
