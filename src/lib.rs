@@ -58,28 +58,28 @@ pub use algorithm::Optimizer;
 #[cfg(test)]
 mod tests
 {
-   /*use crate::algorithm::Optimizer;
-   use argmin_testfunctions::*;
-   const ITER: usize = 100;
+    /*use crate::algorithm::Optimizer;
+    use argmin_testfunctions::*;
+    const ITER: usize = 100;
 
-   #[test]
-   fn test_styblinski_tang()
-   {
-      const DIM: usize = 5;
-      let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-5., 5.)).collect();
-      let (best_value, best_coordinates) = Optimizer::minimize(&styblinski_tang, &input_interval, ITER);
-      let true_best_value = styblinski_tang(&[-2.903534; DIM]);
-      println!("best value : {} in [{}, {}] (target: {})",
-               best_value, best_coordinates[0], best_coordinates[1], true_best_value);
-   }
+    #[test]
+    fn test_styblinski_tang()
+    {
+       const DIM: usize = 5;
+       let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-5., 5.)).collect();
+       let (best_value, best_coordinates) = Optimizer::minimize(&styblinski_tang, &input_interval, ITER);
+       let true_best_value = styblinski_tang(&[-2.903534; DIM]);
+       println!("best value : {} in [{}, {}] (target: {})",
+                best_value, best_coordinates[0], best_coordinates[1], true_best_value);
+    }
 
-   #[test]
-   fn test_himmelblau_iterator()
-   {
-      let input_interval: Vec<(f64, f64)> = vec![(-5., 5.), (-5., 5.)];
-      Optimizer::new(&himmelblau, input_interval, true)
-         .take(ITER)
-         .enumerate()
-         .for_each(|(i,(v,c))| println!("iter {}: {} in {:?}", i, v, c));
-   }*/
+    #[test]
+    fn test_himmelblau_iterator()
+    {
+       let input_interval: Vec<(f64, f64)> = vec![(-5., 5.), (-5., 5.)];
+       Optimizer::new(&himmelblau, input_interval, true)
+          .take(ITER)
+          .enumerate()
+          .for_each(|(i,(v,c))| println!("iter {}: {} in {:?}", i, v, c));
+    }*/
 }
