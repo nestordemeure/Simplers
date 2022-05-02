@@ -16,5 +16,5 @@ license = "Apache-2.0"
 
 [dependencies]
 priority-queue = "1.2.0"
-ordered-float = "2.8.0"
+ordered-float = "3.0.0"
 num-traits = "0.2.14"
