@@ -80,6 +80,51 @@ impl<F, CoordFloat, ValueFloat> Optimizer<F, CoordFloat, ValueFloat>
         Optimizer { exploration_depth, search_space, best_point, min_value, queue }
     }
 
+    /// Predicts the objective function value at a given point using the algorithm's internal model.
+    ///
+    /// The prediction uses inverse-distance-weighted interpolation from the corners of the
+    /// simplex containing the query point — the same interpolation scheme used internally
+    /// to guide the search.
+    ///
+    /// The `point` should be in the original input space (the hypercube defined by `input_interval`).
+    /// Returns `None` if the point falls outside all current simplices (e.g. due to floating-point
+    /// edge cases) or if the internal geometry is degenerate.
+    pub fn predict(&self, point: &[CoordFloat]) -> Option<ValueFloat>
+    {
+        // Convert from hypercube to internal simplex coordinates
+        let internal_point = self.search_space.to_simplex(point);
+
+        // Find the containing simplex and interpolate
+        for (simplex, _) in self.queue.iter()
+        {
+            if simplex.contains_point(&internal_point)
+            {
+                let value = simplex.interpolate_at(&internal_point);
+                // Un-negate for minimization
+                return Some(if self.search_space.minimize { -value } else { value });
+            }
+        }
+
+        None
+    }
+
+    /// Returns all points evaluated so far, in evaluation order, as `(coordinates, value)` pairs.
+    ///
+    /// The coordinates are in the original input space (the hypercube defined by `input_interval`),
+    /// and the values are the raw outputs of the objective function (not transformed for min/max).
+    ///
+    /// The first `d+1` entries (where `d` is the number of input dimensions) are the initial
+    /// simplex vertices placed at the corners of the search space.
+    /// Each subsequent entry corresponds to one iteration of the optimizer,
+    /// evaluating the center of the most promising simplex.
+    ///
+    /// This can be used to plot the optimization trajectory (value vs. iteration number)
+    /// or to visualize which regions of the search space have been explored.
+    pub fn evaluated_points(&self) -> &[(Coordinates<CoordFloat>, ValueFloat)]
+    {
+        &self.search_space.history
+    }
+
     /// Sets the exploration depth for the algorithm, useful when using the iterator interface.
     ///
     /// `exploration_depth` represents the number of splits we can exploit before requiring higher-level exploration.

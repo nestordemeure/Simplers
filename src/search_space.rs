@@ -11,7 +11,9 @@ pub struct SearchSpace<F, CoordFloat, ValueFloat>
     f: F,
     hypercube: Vec<(CoordFloat, CoordFloat)>,
     pub minimize: bool,
-    pub dimension: usize
+    pub dimension: usize,
+    /// stores all evaluated points in evaluation order as (coordinates_in_input_space, value)
+    pub history: Vec<(Coordinates<CoordFloat>, ValueFloat)>
 }
 
 impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
@@ -23,13 +25,13 @@ impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
     pub fn new(f: F, hypercube: &[(CoordFloat, CoordFloat)], minimize: bool) -> Self
     {
         let dimension = hypercube.len();
-        SearchSpace { f, hypercube: hypercube.to_vec(), minimize, dimension }
+        let history = Vec::new();
+        SearchSpace { f, hypercube: hypercube.to_vec(), minimize, dimension, history }
     }
 
     /// Converts coordinates from the hypercube to the unit simplex
     /// This function is useful when one wants to suggest a point to the algorithm
     /// for the formula used, see: https://math.stackexchange.com/a/385071/495073
-    #[allow(dead_code)]
     pub fn to_simplex(&self, c: &[CoordFloat]) -> Coordinates<CoordFloat>
     {
         // goes to the unit hypercube
@@ -65,6 +67,7 @@ impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
     {
         let c_hypercube = self.to_hypercube(c);
         let evaluation = (self.f)(&c_hypercube);
+        self.history.push((c_hypercube, evaluation));
         if self.minimize { -evaluation } else { evaluation }
     }
 }

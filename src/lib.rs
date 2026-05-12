@@ -57,28 +57,70 @@ pub use algorithm::Optimizer;
 #[cfg(test)]
 mod tests
 {
-    /*use crate::algorithm::Optimizer;
-    use argmin_testfunctions::*;
-    const ITER: usize = 100;
+    use crate::algorithm::Optimizer;
 
     #[test]
-    fn test_styblinski_tang()
+    fn test_predict_during_optimization()
     {
-       const DIM: usize = 5;
-       let input_interval: Vec<(f64, f64)> = (1..=DIM).map(|_| (-5., 5.)).collect();
-       let (best_value, best_coordinates) = Optimizer::minimize(&styblinski_tang, &input_interval, ITER);
-       let true_best_value = styblinski_tang(&[-2.903534; DIM]);
-       println!("best value : {} in [{}, {}] (target: {})",
-                best_value, best_coordinates[0], best_coordinates[1], true_best_value);
+        let f = |v: &[f64]| -(v[0] * v[0] + v[1] * v[1]); // minimum at origin
+        let input_interval = vec![(-5., 5.), (-5., 5.)];
+
+        let mut optimizer = Optimizer::new(f, &input_interval, true);
+
+        // Run some iterations
+        for _ in 0..50
+        {
+            optimizer.next();
+        }
+
+        // Predict at all previously evaluated points — should always return Some
+        for (coords, _actual_value) in optimizer.evaluated_points()
+        {
+            let prediction = optimizer.predict(coords);
+            assert!(prediction.is_some(),
+                    "predict returned None for previously evaluated point {:?}",
+                    coords);
+        }
+
+        // Predict at the known minimum (origin) — should return Some
+        let prediction_at_origin = optimizer.predict(&[0.0, 0.0]);
+        assert!(prediction_at_origin.is_some(), "predict returned None at origin");
+
+        // Predict at corners of the search space — should return Some
+        let corners = vec![[-5.0, -5.0], [-5.0, 5.0], [5.0, -5.0], [5.0, 5.0], [0.0, 0.0], [2.5, -1.0]];
+        for corner in &corners
+        {
+            let prediction = optimizer.predict(corner);
+            assert!(prediction.is_some(), "predict returned None at {:?}", corner);
+        }
     }
 
     #[test]
-    fn test_himmelblau_iterator()
+    fn test_predict_improves_with_iterations()
     {
-       let input_interval: Vec<(f64, f64)> = vec![(-5., 5.), (-5., 5.)];
-       Optimizer::new(&himmelblau, input_interval, true)
-          .take(ITER)
-          .enumerate()
-          .for_each(|(i,(v,c))| println!("iter {}: {} in {:?}", i, v, c));
-    }*/
+        let f = |v: &[f64]| v[0] * v[0] + v[1] * v[1]; // minimum at origin = 0
+        let input_interval = vec![(-5., 5.), (-5., 5.)];
+
+        // Run a short optimization
+        let mut optimizer_short = Optimizer::new(f, &input_interval, true);
+        for _ in 0..10
+        {
+            optimizer_short.next();
+        }
+
+        // Run a longer optimization
+        let mut optimizer_long = Optimizer::new(f, &input_interval, true);
+        for _ in 0..100
+        {
+            optimizer_long.next();
+        }
+
+        // The longer run should predict closer to 0 at the origin
+        let pred_short = optimizer_short.predict(&[0.0, 0.0]).unwrap();
+        let pred_long = optimizer_long.predict(&[0.0, 0.0]).unwrap();
+        assert!(pred_long.abs() <= pred_short.abs(),
+                "longer optimization should predict better at minimum: short={}, long={}",
+                pred_short,
+                pred_long);
+    }
 }

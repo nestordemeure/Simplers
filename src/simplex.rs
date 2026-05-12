@@ -4,6 +4,75 @@ use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use num_traits::{Float, float::FloatCore};
 
+//-----------------------------------------------------------------------------
+// LINEAR ALGEBRA
+
+/// Solves the linear system Ax = b in place using Gaussian elimination with partial pivoting.
+/// Returns None if the matrix is singular.
+#[allow(clippy::needless_range_loop)]
+fn solve_linear_system<T: Float>(matrix: &mut [Vec<T>], rhs: &mut [T]) -> Option<Box<[T]>>
+{
+    let n = rhs.len();
+    let tolerance = T::epsilon() * T::from(100.0).unwrap();
+
+    // Forward elimination with partial pivoting
+    for col in 0..n
+    {
+        // Find pivot row
+        let mut max_row = col;
+        let mut max_val = matrix[col][col].abs();
+        for row in (col + 1)..n
+        {
+            let val = matrix[row][col].abs();
+            if val > max_val
+            {
+                max_val = val;
+                max_row = row;
+            }
+        }
+
+        if max_val < tolerance
+        {
+            return None; // Singular matrix
+        }
+
+        // Swap rows
+        if max_row != col
+        {
+            matrix.swap(col, max_row);
+            rhs.swap(col, max_row);
+        }
+
+        // Eliminate below
+        for row in (col + 1)..n
+        {
+            let factor = matrix[row][col] / matrix[col][col];
+            for j in (col + 1)..n
+            {
+                matrix[row][j] = matrix[row][j] - factor * matrix[col][j];
+            }
+            rhs[row] = rhs[row] - factor * rhs[col];
+        }
+    }
+
+    // Back substitution
+    let mut solution = vec![T::zero(); n];
+    for i in (0..n).rev()
+    {
+        let mut sum = rhs[i];
+        for j in (i + 1)..n
+        {
+            sum = sum - matrix[i][j] * solution[j];
+        }
+        solution[i] = sum / matrix[i][i];
+    }
+
+    Some(solution.into_boxed_slice())
+}
+
+//-----------------------------------------------------------------------------
+// SIMPLEX
+
 /// represents a simplex
 #[derive(Clone)]
 pub struct Simplex<CoordFloat: Float, ValueFloat: Float>
@@ -88,6 +157,71 @@ impl<CoordFloat: Float + FloatCore, ValueFloat: Float> Simplex<CoordFloat, Value
             }
         }
         result
+    }
+
+    /// Computes the barycentric coordinates of a point with respect to this simplex.
+    /// Returns None if the simplex is degenerate (singular matrix).
+    fn barycentric_coordinates(&self, point: &Coordinates<CoordFloat>) -> Option<Box<[CoordFloat]>>
+    {
+        let d = point.len();
+        let v0 = &self.corners[0].coordinates;
+
+        // Build the matrix: row i corresponds to dimension i, column j = corner[j+1] - corner[0]
+        let mut matrix: Vec<Vec<CoordFloat>> =
+            (0..d).map(|row| (0..d).map(|col| self.corners[col + 1].coordinates[row] - v0[row]).collect())
+                  .collect();
+
+        // RHS: point - corner[0]
+        let mut rhs: Vec<CoordFloat> = point.iter().zip(v0.iter()).map(|(&p, &v)| p - v).collect();
+
+        // Solve for lambda_1..lambda_d
+        let lambdas = solve_linear_system(&mut matrix, &mut rhs)?;
+
+        // lambda_0 = 1 - sum(lambda_1..lambda_d)
+        let sum: CoordFloat = lambdas.iter().copied().fold(CoordFloat::zero(), ::std::ops::Add::add);
+        let lambda_0 = CoordFloat::one() - sum;
+
+        let mut result = Vec::with_capacity(d + 1);
+        result.push(lambda_0);
+        result.extend_from_slice(&lambdas);
+        Some(result.into_boxed_slice())
+    }
+
+    /// Checks whether a point lies inside this simplex.
+    pub fn contains_point(&self, point: &Coordinates<CoordFloat>) -> bool
+    {
+        let tolerance = -<CoordFloat as Float>::epsilon() * CoordFloat::from(100.0).unwrap();
+        match self.barycentric_coordinates(point)
+        {
+            Some(coords) => coords.iter().all(|&c| c >= tolerance),
+            None => false
+        }
+    }
+
+    /// Computes the IDW-interpolated value at a point inside this simplex.
+    /// Uses the same inverse-distance weighting as the internal evaluation.
+    pub fn interpolate_at(&self, point: &Coordinates<CoordFloat>) -> ValueFloat
+    {
+        // If the point coincides with a corner, return that corner's value directly
+        for corner in &self.corners
+        {
+            let dist: ValueFloat = Point::distance(&corner.coordinates, point);
+            if dist < <ValueFloat as Float>::epsilon()
+            {
+                return corner.value;
+            }
+        }
+
+        let inverse_distances: Vec<ValueFloat> =
+            self.corners.iter().map(|c| ValueFloat::one() / Point::distance(&c.coordinates, point)).collect();
+        let total: ValueFloat =
+            inverse_distances.iter().copied().fold(ValueFloat::zero(), ::std::ops::Add::add);
+        self.corners
+            .iter()
+            .zip(inverse_distances.iter())
+            .map(|(c, &d)| c.value * d)
+            .fold(ValueFloat::zero(), ::std::ops::Add::add)
+        / total
     }
 
     /// returns a score for a simplex
