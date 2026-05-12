@@ -11,23 +11,21 @@ use std::rc::Rc;
 /// - `ValueFloat` is the float type used to represent the evaluations (such as f64)
 /// - `CoordFloat` is the float type used to represent the coordinates (such as f32)
 pub struct Optimizer<F, CoordFloat, ValueFloat>
-where
-    F: FnMut(&[CoordFloat]) -> ValueFloat,
-    CoordFloat: Float,
-    ValueFloat: Float,
+    where F: FnMut(&[CoordFloat]) -> ValueFloat,
+          CoordFloat: Float,
+          ValueFloat: Float
 {
     exploration_depth: ValueFloat,
     search_space: SearchSpace<F, CoordFloat, ValueFloat>,
     best_point: Rc<Point<CoordFloat, ValueFloat>>,
     min_value: ValueFloat,
-    queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>>,
+    queue: PriorityQueue<Simplex<CoordFloat, ValueFloat>, OrderedFloat<ValueFloat>>
 }
 
 impl<F, CoordFloat, ValueFloat> Optimizer<F, CoordFloat, ValueFloat>
-where
-    F: FnMut(&[CoordFloat]) -> ValueFloat,
-    CoordFloat: Float,
-    ValueFloat: Float,
+    where F: FnMut(&[CoordFloat]) -> ValueFloat,
+          CoordFloat: Float,
+          ValueFloat: Float
 {
     /// Creates a new optimizer to explore the given search space with the iterator interface.
     ///
@@ -54,24 +52,23 @@ where
     /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
     /// # }
     /// ```
-    pub fn new(f: F, input_interval: &[(CoordFloat, CoordFloat)], should_minimize: bool) -> Self {
+    pub fn new(f: F, input_interval: &[(CoordFloat, CoordFloat)], should_minimize: bool) -> Self
+    {
         // builds initial conditions
         let mut search_space = SearchSpace::new(f, input_interval, should_minimize);
         let initial_simplex = Simplex::initial_simplex(&mut search_space);
 
         // various values track through the iterations
-        let best_point = initial_simplex
-            .corners
-            .iter()
-            .max_by_key(|c| OrderedFloat(c.value))
-            .expect("You need at least one dimension!")
-            .clone();
-        let min_value = initial_simplex
-            .corners
-            .iter()
-            .map(|c| c.value)
-            .min_by_key(|&v| OrderedFloat(v))
-            .expect("You need at least one dimension!");
+        let best_point = initial_simplex.corners
+                                        .iter()
+                                        .max_by_key(|c| OrderedFloat(c.value))
+                                        .expect("You need at least one dimension!")
+                                        .clone();
+        let min_value = initial_simplex.corners
+                                       .iter()
+                                       .map(|c| c.value)
+                                       .min_by_key(|&v| OrderedFloat(v))
+                                       .expect("You need at least one dimension!");
 
         // initialize priority queue
         // no need to evaluate the initial simplex as it will be poped immediatly
@@ -118,7 +115,8 @@ where
     /// println!("greedy result : {} vs exploration result : {}", min_value_greedy, min_value_explore);
     /// # }
     /// ```
-    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self {
+    pub fn set_exploration_depth(mut self, exploration_depth: usize) -> Self
+    {
         self.exploration_depth = ValueFloat::from(exploration_depth + 1).unwrap();
         self
     }
@@ -138,16 +136,15 @@ where
     /// println!("max value: {} found in [{}, {}]", max_value, coordinates[0], coordinates[1]);
     /// # }
     /// ```
-    pub fn maximize(
-        f: F,
-        input_interval: &[(CoordFloat, CoordFloat)],
-        nb_iterations: usize,
-    ) -> (ValueFloat, Coordinates<CoordFloat>) {
+    pub fn maximize(f: F,
+                    input_interval: &[(CoordFloat, CoordFloat)],
+                    nb_iterations: usize)
+                    -> (ValueFloat, Coordinates<CoordFloat>)
+    {
         let initial_iteration_number = input_interval.len() + 1;
         let should_minimize = false;
-        Optimizer::new(f, input_interval, should_minimize)
-            .nth(nb_iterations - initial_iteration_number)
-            .unwrap()
+        Optimizer::new(f, input_interval, should_minimize).nth(nb_iterations - initial_iteration_number)
+                                                          .unwrap()
     }
 
     /// Self contained optimization algorithm.
@@ -165,37 +162,37 @@ where
     /// println!("min value: {} found in [{}, {}]", min_value, coordinates[0], coordinates[1]);
     /// # }
     /// ```
-    pub fn minimize(
-        f: F,
-        input_interval: &[(CoordFloat, CoordFloat)],
-        nb_iterations: usize,
-    ) -> (ValueFloat, Coordinates<CoordFloat>) {
+    pub fn minimize(f: F,
+                    input_interval: &[(CoordFloat, CoordFloat)],
+                    nb_iterations: usize)
+                    -> (ValueFloat, Coordinates<CoordFloat>)
+    {
         let initial_iteration_number = input_interval.len() + 1;
         let should_minimize = true;
-        Optimizer::new(f, input_interval, should_minimize)
-            .nth(nb_iterations - initial_iteration_number)
-            .unwrap()
+        Optimizer::new(f, input_interval, should_minimize).nth(nb_iterations - initial_iteration_number)
+                                                          .unwrap()
     }
 }
 
 /// implements iterator for the Optimizer to give full control on the stopping condition to the user
 impl<F, CoordFloat, ValueFloat> Iterator for Optimizer<F, CoordFloat, ValueFloat>
-where
-    F: FnMut(&[CoordFloat]) -> ValueFloat,
-    CoordFloat: Float,
-    ValueFloat: Float,
+    where F: FnMut(&[CoordFloat]) -> ValueFloat,
+          CoordFloat: Float,
+          ValueFloat: Float
 {
     type Item = (ValueFloat, Coordinates<CoordFloat>);
 
     /// runs an iteration of the optimization algorithm and returns the best result so far
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Option<Self::Item>
+    {
         // gets the exploration depth for later use
         let exploration_depth = self.exploration_depth;
 
         // gets an up to date simplex
         let mut simplex = self.queue.pop().expect("Impossible: The queue cannot be empty!").0;
         let current_difference = self.best_point.value - self.min_value;
-        while simplex.difference != current_difference {
+        while simplex.difference != current_difference
+        {
             // updates the simplex and pushes it back into the queue
             simplex.difference = current_difference;
             let new_evaluation = simplex.evaluate(exploration_depth);
@@ -210,18 +207,20 @@ where
         let new_point = Rc::new(Point { coordinates, value });
 
         // splits the simplex around its center and push the subsimplex into the queue
-        simplex
-            .split(new_point.clone(), current_difference)
-            .into_iter()
-            .map(|s| (OrderedFloat(s.evaluate(exploration_depth)), s))
-            .for_each(|(e, s)| {
-                self.queue.push(s, e);
-            });
+        simplex.split(new_point.clone(), current_difference)
+               .into_iter()
+               .map(|s| (OrderedFloat(s.evaluate(exploration_depth)), s))
+               .for_each(|(e, s)| {
+                   self.queue.push(s, e);
+               });
 
         // updates the difference
-        if value > self.best_point.value {
+        if value > self.best_point.value
+        {
             self.best_point = new_point;
-        } else if value < self.min_value {
+        }
+        else if value < self.min_value
+        {
             self.min_value = value;
         }
 
