@@ -12,7 +12,7 @@
 //!let input_interval = vec![(-10., 10.), (-20., 20.), (0., 5.)];
 //!let nb_iterations = 100;
 //!
-//!let (max_value, coordinates) = Optimizer::maximize(&f, &input_interval, nb_iterations);
+//!let (max_value, coordinates) = Optimizer::maximize(f, &input_interval, nb_iterations);
 //!println!("max value: {} found in [{}, {}, {}]", max_value, coordinates[0], coordinates[1], coordinates[2]);
 //!# }
 //!```
@@ -30,7 +30,7 @@
 //!// runs the search for 30 iterations
 //!// then waits until we find a point good enough
 //!// finally stores the best value so far
-//!let (min_value, coordinates) = Optimizer::new(&f, &input_interval, should_minimize)
+//!let (min_value, coordinates) = Optimizer::new(f, &input_interval, should_minimize)
 //!                                       .set_exploration_depth(10)
 //!                                       .skip(30)
 //!                                       .skip_while(|(value,coordinates)| *value > 1. )
@@ -45,7 +45,6 @@
         trivial_casts,
         trivial_numeric_casts,
         unsafe_code,
-        unstable_features,
         unused_import_braces,
         unused_qualifications)]
 

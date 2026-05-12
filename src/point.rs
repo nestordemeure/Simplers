@@ -26,7 +26,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Point<CoordFloat, ValueFloat>
     }
 
     /// adds the point to the coordinates and returns the coordinates
-    fn add_to(&self, coordinates: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
+    fn add_to(&self, coordinates: &[CoordFloat]) -> Coordinates<CoordFloat>
     {
         coordinates.iter().zip(self.coordinates.iter()).map(|(&x, &y)| x + y).collect()
     }
@@ -37,7 +37,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Point<CoordFloat, ValueFloat>
         let length = CoordFloat::from(points.len()).expect("Unable to convert from usize to value type.");
         let mut points = points.iter();
         let first = points.next().expect("You need at least one coordinate to average!").coordinates.clone();
-        let sum = points.fold(first, |acc, x| x.add_to(acc));
+        let sum = points.fold(first, |acc, x| x.add_to(&acc));
         sum.iter().map(|sum| (*sum) / length).collect()
     }
 }

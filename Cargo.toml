@@ -1,8 +1,8 @@
 [package]
 name = "simplers_optimization"
-version = "0.4.4"
+version = "0.5.0"
 authors = ["Nestor Demeure"]
-edition = "2021"
+edition = "2024"
 
 # description of the crate
 # see https://doc.rust-lang.org/cargo/reference/manifest.html#package-metadata
@@ -15,6 +15,6 @@ categories = ["algorithms", "science"] # crates.io/category_slugs
 license = "Apache-2.0"
 
 [dependencies]
-priority-queue = "1.2.0"
-ordered-float = "2.8.0"
-num-traits = "0.2.14"
+priority-queue = "2.7.0"
+ordered-float = "5.3.0"
+num-traits = "0.2.19"

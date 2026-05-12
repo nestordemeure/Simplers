@@ -2,7 +2,7 @@ use crate::point::*;
 use crate::search_space::*;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
-use num_traits::Float;
+use num_traits::{Float, float::FloatCore};
 
 /// represents a simplex
 #[derive(Clone)]
@@ -18,7 +18,7 @@ pub struct Simplex<CoordFloat: Float, ValueFloat: Float>
     ratio: ValueFloat
 }
 
-impl<CoordFloat: Float, ValueFloat: Float> Simplex<CoordFloat, ValueFloat>
+impl<CoordFloat: Float + FloatCore, ValueFloat: Float> Simplex<CoordFloat, ValueFloat>
 {
     /// creates a new simplex
     fn new(corners: Vec<Rc<Point<CoordFloat, ValueFloat>>>, ratio: ValueFloat, difference: ValueFloat)
@@ -114,7 +114,7 @@ impl<CoordFloat: Float, ValueFloat: Float> Simplex<CoordFloat, ValueFloat>
         let dim = ValueFloat::from(self.center.len()).unwrap();
         let split_number = self.ratio.log(dim + ValueFloat::one()).abs();
 
-        // insures that the difference (which is positiv by construction) is non zero
+        // ensures that the difference (which is positive by construction) is non zero
         let difference = self.difference + Float::epsilon();
 
         interpolated_value - difference * (split_number / exploration_depth)

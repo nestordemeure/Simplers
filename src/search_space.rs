@@ -1,11 +1,11 @@
 use crate::point::*;
 use ordered_float::OrderedFloat;
-use num_traits::Float;
+use num_traits::{Float, float::FloatCore};
 
 /// encapsulate a function and its domain of definition
 pub struct SearchSpace<F, CoordFloat, ValueFloat>
     where F: FnMut(&[CoordFloat]) -> ValueFloat,
-          CoordFloat: Float,
+          CoordFloat: Float + FloatCore,
           ValueFloat: Float
 {
     f: F,
@@ -16,7 +16,7 @@ pub struct SearchSpace<F, CoordFloat, ValueFloat>
 
 impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
     where F: FnMut(&[CoordFloat]) -> ValueFloat,
-          CoordFloat: Float,
+          CoordFloat: Float + FloatCore,
           ValueFloat: Float
 {
     /// builds a new search space that encapsulate both the function to evaluate and its domain of definition
@@ -27,9 +27,10 @@ impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
     }
 
     /// Converts coordinates from the hypercube to the unit simplex
-    /// This fucntion is useful when one wants to suggest a point to the algorithm
+    /// This function is useful when one wants to suggest a point to the algorithm
     /// for the formula used, see: https://math.stackexchange.com/a/385071/495073
-    pub fn to_simplex(&self, c: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
+    #[allow(dead_code)]
+    pub fn to_simplex(&self, c: &[CoordFloat]) -> Coordinates<CoordFloat>
     {
         // goes to the unit hypercube
         let c: Coordinates<CoordFloat> =
@@ -46,7 +47,7 @@ impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
 
     /// converts coordinates from the unit simplex to the hypercube
     /// formula deduced from: https://math.stackexchange.com/a/385071/495073
-    pub fn to_hypercube(&self, c: Coordinates<CoordFloat>) -> Coordinates<CoordFloat>
+    pub fn to_hypercube(&self, c: &[CoordFloat]) -> Coordinates<CoordFloat>
     {
         // gets the ratio to go from the unit hypercube to the unit simplex
         let sum = c.iter().copied().fold(CoordFloat::zero(), ::std::ops::Add::add); // sum
@@ -62,15 +63,8 @@ impl<F, CoordFloat, ValueFloat> SearchSpace<F, CoordFloat, ValueFloat>
     /// takes coordinates in the unit simplex and evaluate them with the function
     pub fn evaluate(&mut self, c: &Coordinates<CoordFloat>) -> ValueFloat
     {
-        let c_hypercube = self.to_hypercube(c.clone());
+        let c_hypercube = self.to_hypercube(c);
         let evaluation = (self.f)(&c_hypercube);
-        if self.minimize
-        {
-            -evaluation
-        }
-        else
-        {
-            evaluation
-        }
+        if self.minimize { -evaluation } else { evaluation }
     }
 }
